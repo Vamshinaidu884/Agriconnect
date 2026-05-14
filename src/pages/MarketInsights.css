@@ -1,0 +1,157 @@
+.mi-header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+.mi-header-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-sm);
+}
+
+.mi-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+}
+.mi-summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-base);
+}
+.mi-card-up { color: var(--success); border-color: rgba(67,160,71,0.3); }
+.mi-card-down { color: var(--error); border-color: rgba(211,47,47,0.3); }
+.mi-card-avg { color: var(--primary-light); }
+.mi-summary-value {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: 700;
+}
+.mi-summary-label {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.mi-prices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-base);
+}
+
+.mi-price-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-xl);
+  animation: fadeInUp 0.4s ease backwards;
+}
+
+.mi-price-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+.mi-price-emoji { font-size: 2rem; }
+.mi-price-info { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.mi-price-crop {
+  font-family: var(--font-heading);
+  font-size: var(--text-md);
+  font-weight: 700;
+}
+.mi-price-mandi {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.mi-price-right {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mi-price-current {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.mi-price-amount {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--primary-light);
+}
+.mi-price-unit {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.mi-price-change {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+.mi-change-up { background: var(--success-bg); color: var(--success); }
+.mi-change-down { background: var(--error-bg); color: var(--error); }
+
+.mi-price-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mi-price-bar {
+  height: 6px;
+  background: var(--surface-elevated);
+  border-radius: var(--radius-full);
+  position: relative;
+  overflow: hidden;
+}
+.mi-price-prev {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--text-tertiary);
+  border-radius: var(--radius-full);
+  opacity: 0.3;
+}
+.mi-price-curr {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 1s ease;
+}
+.mi-bar-up { background: var(--success); }
+.mi-bar-down { background: var(--error); }
+
+.mi-price-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.625rem;
+  color: var(--text-tertiary);
+}
+
+.mi-recommendation {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-align: center;
+}
+.mi-rec-sell { background: var(--success-bg); color: var(--success); }
+.mi-rec-wait { background: var(--warning-bg); color: var(--warning); }
+
+.mi-disclaimer {
+  margin-top: var(--space-xl);
+  padding: var(--space-base);
+}
+.mi-disclaimer p {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+  line-height: 1.6;
+}

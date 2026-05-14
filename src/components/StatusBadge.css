@@ -1,0 +1,14 @@
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  font-family: var(--font-heading);
+}
+.status-badge-warning { background: var(--warning-bg); color: var(--warning); }
+.status-badge-success { background: var(--success-bg); color: var(--success); }
+.status-badge-info { background: var(--info-bg); color: var(--info); }
+.status-badge-error { background: var(--error-bg); color: var(--error); }

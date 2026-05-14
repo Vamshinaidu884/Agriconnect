@@ -1,0 +1,21 @@
+.rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.rating-star {
+  color: var(--text-tertiary);
+  padding: 2px;
+  transition: all var(--transition-fast);
+  display: flex;
+}
+.rating-star.filled { color: var(--accent-gold); }
+.rating-star:not(:disabled):hover { transform: scale(1.2); }
+.rating-star:disabled { cursor: default; }
+.rating-value {
+  margin-left: 6px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--accent-gold);
+  font-family: var(--font-heading);
+}

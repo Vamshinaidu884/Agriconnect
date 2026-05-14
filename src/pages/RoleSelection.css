@@ -1,0 +1,66 @@
+.role-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-2xl) var(--space-xl);
+}
+.role-content {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xl);
+  animation: fadeInUp 0.5s ease;
+}
+.role-header { text-align: center; }
+.role-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-base);
+}
+.role-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl) var(--space-base);
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  animation: fadeInUp 0.4s ease backwards;
+  border: 2px solid transparent;
+}
+.role-card:hover {
+  border-color: var(--primary);
+  background: var(--surface-elevated);
+}
+.role-card-selected {
+  border-color: var(--primary) !important;
+  background: var(--primary-subtle) !important;
+  box-shadow: var(--shadow-glow);
+}
+.role-check {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px; height: 28px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: bounceIn 0.4s ease;
+}
+.role-emoji { font-size: 2.5rem; }
+.role-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 700;
+}
+.role-desc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}

@@ -1,0 +1,105 @@
+.request-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  animation: fadeInUp 0.4s ease backwards;
+}
+
+.request-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.request-card-type {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.request-card-emoji { font-size: 1.4rem; }
+
+.request-card-type-label {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.request-card-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-md);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.request-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.request-card-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.request-card-distance { color: var(--primary-light); }
+
+.request-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--surface-border);
+}
+
+.request-card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+
+.request-card-price-value {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--primary-light);
+}
+
+.request-card-price-unit {
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
+}
+
+.request-card-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.request-card-workers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.request-card-food {
+  font-size: var(--text-xs);
+  background: var(--success-bg);
+  color: var(--success);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.request-card-slot { font-size: var(--text-sm); }
+
+.request-card-arrow { color: var(--text-tertiary); }
