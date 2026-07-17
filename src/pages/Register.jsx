@@ -67,10 +67,16 @@ export default function Register() {
 
   return (
     <div className="register-page" id="register-page">
-      <div className="register-content">
+      <div className="register-content card" style={{ padding: '2rem' }}>
         <div className="register-header">
-          <h1 className="heading-2">Create Account</h1>
-          <p className="body-text">Join ArgiMatch today</p>
+          <div className="login-logo-box" style={{ margin: '0 auto var(--space-sm)' }}>
+            <span className="login-logo-icon">🌾</span>
+          </div>
+          <h1 className="login-title">
+            <span className="brand-green">Agri</span>
+            <span className="brand-accent">Match</span>
+          </h1>
+          <p className="login-subtitle">Join AgriMatch today</p>
         </div>
 
         <form className="register-form" onSubmit={handleSubmit} id="register-form">

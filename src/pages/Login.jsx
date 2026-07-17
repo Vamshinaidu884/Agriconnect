@@ -1,134 +1,97 @@
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useApp } from '../context/AppContext';
 import './Login.css';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw] = useState(false);
-  const [error, setError] = useState('');
+  const { register, handleSubmit, formState: { errors } } = useForm();
   const [loading, setLoading] = useState(false);
-  const { login, loginWithGoogle } = useAuth();
+  const [apiError, setApiError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const { login } = useAuth();
+  const { showToast } = useApp();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError('');
-    if (!email || !password) { setError('Please fill in all fields'); return; }
+  const onSubmit = async (data) => {
     setLoading(true);
-    setTimeout(() => {
-      const result = login(email, password);
-      if (result.success) {
-        navigate('/home', { replace: true });
-      } else {
-        setError(result.message);
-      }
+    setApiError('');
+    try {
+      await login(data.email, data.password);
+      showToast('Welcome back! 👋');
+      navigate('/home');
+    } catch (err) {
+      setApiError(err.message || 'Invalid email or password');
+    } finally {
       setLoading(false);
-    }, 500);
-  };
-
-  const handleGoogleLogin = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const result = loginWithGoogle();
-      if (result.success) {
-        navigate(result.isNewUser ? '/role-selection' : '/home', { replace: true });
-      }
-      setLoading(false);
-    }, 800);
+    }
   };
 
   return (
     <div className="login-page" id="login-page">
-      <div className="login-bg">
-        <div className="login-bg-shape login-bg-shape-1" />
-        <div className="login-bg-shape login-bg-shape-2" />
-      </div>
-
-      <div className="login-content">
+      <div className="login-content card">
         <div className="login-header">
-          <img src="/logo.png" alt="ArgiMatch" className="login-logo" />
-          <h1 className="login-title">Welcome Back</h1>
-          <p className="login-subtitle">Sign in to continue to ArgiMatch</p>
+          <div className="login-logo-box">
+            <span className="login-logo-icon">🌾</span>
+          </div>
+          <h1 className="login-title">
+            <span className="brand-green">Agri</span>
+            <span className="brand-accent">Match</span>
+          </h1>
+          <p className="login-subtitle">Welcome back! Sign in to continue.</p>
         </div>
 
-        <form className="login-form" onSubmit={handleSubmit} id="login-form">
-          {error && <div className="login-error" id="login-error">{error}</div>}
+        <form onSubmit={handleSubmit(onSubmit)} className="login-form" noValidate>
+          {apiError && <div className="login-error" id="login-api-error">{apiError}</div>}
 
           <div className="input-group">
-            <label className="input-label">Email</label>
-            <div className="input-with-icon">
-              <Mail size={18} className="input-icon" />
-              <input
-                type="email"
-                className="input-field"
-                placeholder="Enter your email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                id="login-email"
-              />
-            </div>
+            <label className="input-label">Email Address</label>
+            <input
+              id="login-email"
+              type="email"
+              className={`input-field ${errors.email ? 'input-error' : ''}`}
+              placeholder="your@email.com"
+              {...register('email', {
+                required: 'Email is required',
+                pattern: { value: /^\S+@\S+\.\S+$/, message: 'Enter a valid email' },
+              })}
+            />
+            {errors.email && <span className="field-error">{errors.email.message}</span>}
           </div>
 
           <div className="input-group">
             <label className="input-label">Password</label>
-            <div className="input-with-icon">
-              <Lock size={18} className="input-icon" />
+            <div style={{ position: 'relative' }}>
               <input
-                type={showPw ? 'text' : 'password'}
-                className="input-field"
-                placeholder="Enter your password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                style={{ paddingRight: '44px' }}
                 id="login-password"
+                type={showPassword ? 'text' : 'password'}
+                className={`input-field ${errors.password ? 'input-error' : ''}`}
+                placeholder="Your password"
+                style={{ paddingRight: '3rem' }}
+                {...register('password', { required: 'Password is required' })}
               />
-              <button
-                type="button"
-                className="login-pw-toggle"
-                onClick={() => setShowPw(!showPw)}
-              >
-                {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+              <button type="button" onClick={() => setShowPassword(s => !s)}
+                style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: '1.1rem' }}>
+                {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
+            {errors.password && <span className="field-error">{errors.password.message}</span>}
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary btn-full btn-lg"
-            disabled={loading}
-            id="login-submit"
-          >
-            {loading ? <span className="login-spinner" /> : 'Sign In'}
+          <div className="login-forgot">
+            <Link to="/forgot-password" id="login-forgot-link">Forgot password?</Link>
+          </div>
+
+          <button id="login-submit" type="submit" className="btn btn-primary btn-lg" disabled={loading}>
+            {loading ? '⏳ Signing in...' : 'Sign In'}
           </button>
         </form>
 
-        <div className="login-divider">
-          <span className="login-divider-line" />
-          <span className="login-divider-text">or</span>
-          <span className="login-divider-line" />
+        <div className="login-register">
+          <span>New to AgriMatch? </span>
+          <Link to="/register" id="login-register-link">Create account</Link>
         </div>
-
-        <button
-          className="btn btn-secondary btn-full btn-lg login-google-btn"
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          id="login-google"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          Continue with Google
-        </button>
-
-        <p className="login-footer">
-          Don't have an account? <Link to="/register" className="login-link" id="login-register-link">Sign Up</Link>
-        </p>
       </div>
     </div>
   );

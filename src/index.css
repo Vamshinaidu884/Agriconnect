@@ -189,26 +189,45 @@ ul, ol {
 }
 
 /* === LAYOUT UTILITIES === */
-.app-layout {
-  max-width: var(--max-width);
-  margin: 0 auto;
+.app-container {
   width: 100%;
   min-height: 100vh;
-  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.app-layout {
+  width: 100%;
+  min-height: 100vh;
   position: relative;
   background: var(--surface);
 }
 
-.page {
-  padding: var(--space-base);
-  padding-bottom: calc(var(--bottom-nav-height) + var(--space-2xl));
-  min-height: 100vh;
-  min-height: 100dvh;
-  animation: pageEnter 0.35s ease;
+/* Float public screens on desktop */
+@media (min-width: 768px) {
+  .app-layout {
+    max-width: 490px;
+    min-height: 85vh;
+    margin: 5vh auto;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
 }
 
-.page-with-header {
-  padding-top: calc(var(--header-height) + var(--space-base));
+.brand-green {
+  color: #4CAF50 !important;
+  font-weight: 800 !important;
+}
+
+.brand-accent {
+  color: #FFD54F !important;
+  font-weight: 800 !important;
+}
+
+.page {
+  padding: var(--space-base);
+  animation: pageEnter 0.35s ease;
 }
 
 /* === ANIMATIONS === */

@@ -1,26 +1,107 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Star, Briefcase, Settings, LogOut, ChevronRight, Shield, Globe } from 'lucide-react';
-import Header from '../components/Header';
-import BottomNav from '../components/BottomNav';
+import { MapPin, Settings, LogOut, ChevronRight, Globe, Camera } from 'lucide-react';
+import Layout from '../components/Layout';
 import RatingStars from '../components/RatingStars';
 import Modal from '../components/Modal';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
+import { useTranslation } from '../context/LanguageContext';
 import { getRoleLabel, getRoleIcon } from '../utils/helpers';
 import { southIndianStates, rangeOptions } from '../data/categories';
+import { userService } from '../services/userService';
 import './Profile.css';
 
 export default function Profile() {
   const { user, updateUser, logout } = useAuth();
   const { showToast } = useApp();
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const fileInputRef = useRef();
+
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showRangeModal, setShowRangeModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const stateName = southIndianStates.find(s => s.id === user?.state)?.name || '';
   const allRoles = ['farmer', 'labour', 'machine_owner'];
+
+  // Client-side image compression helper (max 2MB limit WebP/JPEG format)
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now()
+            });
+            resolve(compressedFile);
+          }, 'image/jpeg', 0.8);
+        };
+      };
+    });
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select a valid image file', 'error');
+      return;
+    }
+
+    setUploading(true);
+    showToast(t('uploading'));
+
+    try {
+      // Compress local image
+      const compressed = await compressImage(file);
+      
+      // Upload directly to Cloudinary via backend
+      const response = await userService.uploadAvatar(compressed);
+      
+      // Update global auth profile picture state instantly
+      updateUser({ profileImage: response.profileImage });
+      showToast('Profile photo updated!');
+    } catch (err) {
+      showToast(err.message || 'Failed to upload image', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const toggleRole = (roleId) => {
     const current = user?.roles || [];
@@ -41,14 +122,30 @@ export default function Profile() {
   };
 
   return (
-    <div className="app-layout">
-      <Header />
-      <div className="page page-with-header" id="profile-page">
+    <Layout title={t('profile')}>
+      <div id="profile-page">
         {/* Profile Card */}
         <div className="profile-card">
-          <div className="profile-avatar-wrapper">
-            <span className="profile-avatar">{user?.avatar || '👤'}</span>
+          <div className="profile-avatar-wrapper" onClick={handleAvatarClick} style={{ cursor: 'pointer' }}>
+            {user?.profileImage ? (
+              <img src={user.profileImage} alt={user.name} className="profile-avatar-img" />
+            ) : (
+              <div className="profile-avatar-placeholder-text">
+                {user?.name?.charAt(0) || '👤'}
+              </div>
+            )}
+            <div className="profile-avatar-overlay">
+              <Camera size={18} />
+              <span>{uploading ? '...' : t('edit_photo')}</span>
+            </div>
             <div className="profile-avatar-glow" />
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/*"
+              style={{ display: 'none' }}
+            />
           </div>
           <h1 className="profile-name">{user?.name || 'User'}</h1>
           <div className="profile-location">
@@ -71,23 +168,23 @@ export default function Profile() {
           <div className="profile-stat">
             <span className="profile-stat-icon">✅</span>
             <span className="profile-stat-value">{user?.completedJobs || 0}</span>
-            <span className="profile-stat-label">Jobs Done</span>
+            <span className="profile-stat-label">{t('jobs_done')}</span>
           </div>
           <div className="profile-stat">
             <span className="profile-stat-icon">⭐</span>
             <span className="profile-stat-value">{user?.rating?.toFixed(1) || '0.0'}</span>
-            <span className="profile-stat-label">Rating</span>
+            <span className="profile-stat-label">{t('rating')}</span>
           </div>
           <div className="profile-stat">
             <span className="profile-stat-icon">📍</span>
             <span className="profile-stat-value">{user?.range || 20}km</span>
-            <span className="profile-stat-label">Range</span>
+            <span className="profile-stat-label">{t('range')}</span>
           </div>
         </div>
 
         {/* Settings List */}
         <div className="profile-section">
-          <h2 className="profile-section-title">Settings</h2>
+          <h2 className="profile-section-title">{t('settings')}</h2>
 
           <button className="profile-menu-item card" onClick={() => setShowRoleModal(true)} id="manage-roles">
             <div className="profile-menu-left">
@@ -95,8 +192,8 @@ export default function Profile() {
                 <Settings size={18} color="var(--primary-light)" />
               </div>
               <div>
-                <span className="profile-menu-label">Manage Roles</span>
-                <span className="profile-menu-desc">Switch or add roles</span>
+                <span className="profile-menu-label">{t('manage_roles')}</span>
+                <span className="profile-menu-desc">{t('switch_roles')}</span>
               </div>
             </div>
             <ChevronRight size={18} color="var(--text-tertiary)" />
@@ -108,7 +205,7 @@ export default function Profile() {
                 <Globe size={18} color="var(--info)" />
               </div>
               <div>
-                <span className="profile-menu-label">Search Range</span>
+                <span className="profile-menu-label">{t('search_radius')}</span>
                 <span className="profile-menu-desc">Currently {user?.range || 20}km</span>
               </div>
             </div>
@@ -121,8 +218,8 @@ export default function Profile() {
                 <LogOut size={18} color="var(--error)" />
               </div>
               <div>
-                <span className="profile-menu-label" style={{ color: 'var(--error)' }}>Logout</span>
-                <span className="profile-menu-desc">Sign out of your account</span>
+                <span className="profile-menu-label" style={{ color: 'var(--error)' }}>{t('logout')}</span>
+                <span className="profile-menu-desc">{t('sign_out')}</span>
               </div>
             </div>
             <ChevronRight size={18} color="var(--text-tertiary)" />
@@ -133,15 +230,13 @@ export default function Profile() {
         <div className="profile-info">
           <p>📧 {user?.email}</p>
           <p>📱 {user?.phone || 'No phone set'}</p>
-          <p>📅 Joined {user?.joinedDate || 'Recently'}</p>
         </div>
 
         <div className="profile-brand">
-          <span>🌾 ArgiMatch v1.0</span>
+          <span>🌾 AgriMatch v2.0 Pro</span>
           <span>Smart Farming Starts Here</span>
         </div>
       </div>
-      <BottomNav />
 
       {/* Role Modal */}
       <Modal isOpen={showRoleModal} onClose={() => setShowRoleModal(false)} title="Manage Roles">
@@ -191,6 +286,6 @@ export default function Profile() {
           </div>
         </div>
       </Modal>
-    </div>
+    </Layout>
   );
 }

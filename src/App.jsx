@@ -15,6 +15,11 @@ import Profile from './pages/Profile';
 import DiseaseDetection from './pages/DiseaseDetection';
 import CropRecommendation from './pages/CropRecommendation';
 import MarketInsights from './pages/MarketInsights';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import Machines from './pages/Machines';
+import AddMachine from './pages/AddMachine';
+import { LanguageProvider } from './context/LanguageContext';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -33,9 +38,14 @@ function PublicRoute({ children }) {
 function AppRoutes() {
   return (
     <Routes>
+      {/* Public */}
       <Route path="/" element={<Splash />} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+      <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+      <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+
+      {/* Protected */}
       <Route path="/role-selection" element={<ProtectedRoute><RoleSelection /></ProtectedRoute>} />
       <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
       <Route path="/create-request" element={<ProtectedRoute><CreateRequest /></ProtectedRoute>} />
@@ -46,6 +56,10 @@ function AppRoutes() {
       <Route path="/disease-detection" element={<ProtectedRoute><DiseaseDetection /></ProtectedRoute>} />
       <Route path="/crop-recommendation" element={<ProtectedRoute><CropRecommendation /></ProtectedRoute>} />
       <Route path="/market-insights" element={<ProtectedRoute><MarketInsights /></ProtectedRoute>} />
+      <Route path="/machines" element={<ProtectedRoute><Machines /></ProtectedRoute>} />
+      <Route path="/add-machine" element={<ProtectedRoute><AddMachine /></ProtectedRoute>} />
+
+      {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
@@ -54,14 +68,16 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppProvider>
-          <div className="app-layout">
-            <AppRoutes />
-            <Toast />
-          </div>
-        </AppProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <AppProvider>
+            <div className="app-container">
+              <AppRoutes />
+              <Toast />
+            </div>
+          </AppProvider>
+        </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

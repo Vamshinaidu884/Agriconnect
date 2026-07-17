@@ -1,0 +1,123 @@
+/* ============================================================
+   Constants — Labour Categories & Machine Types
+   Easy to extend: just add to the arrays below.
+   ============================================================ */
+
+/**
+ * Labour Categories — all available labour roles.
+ * Adding a new role is as simple as adding a new object here.
+ */
+const LABOUR_CATEGORIES = [
+  { id: 'general_labour', name: 'General Labour', icon: '👷' },
+  { id: 'harvest_worker', name: 'Harvest Worker', icon: '🌾' },
+  { id: 'cutting_worker', name: 'Cutting Worker', icon: '✂️' },
+  { id: 'planting_worker', name: 'Planting Worker', icon: '🌱' },
+  { id: 'sowing_worker', name: 'Sowing Worker', icon: '🫘' },
+  { id: 'weeding_worker', name: 'Weeding Worker', icon: '🌿' },
+  { id: 'transplanting_worker', name: 'Transplanting Worker', icon: '🔄' },
+  { id: 'cotton_picker', name: 'Cotton Picker', icon: '🏳️' },
+  { id: 'sugarcane_cutter', name: 'Sugarcane Cutter', icon: '🎋' },
+  { id: 'fruit_picker', name: 'Fruit Picker', icon: '🍎' },
+  { id: 'vegetable_picker', name: 'Vegetable Picker', icon: '🥬' },
+  { id: 'tea_plantation_worker', name: 'Tea Plantation Worker', icon: '🍵' },
+  { id: 'coffee_plantation_worker', name: 'Coffee Plantation Worker', icon: '☕' },
+  { id: 'field_cleaner', name: 'Field Cleaner', icon: '🧹' },
+  { id: 'lifting_worker', name: 'Lifting Worker', icon: '💪' },
+  { id: 'loading_worker', name: 'Loading Worker', icon: '📦' },
+  { id: 'unloading_worker', name: 'Unloading Worker', icon: '🚚' },
+  { id: 'packing_worker', name: 'Packing Worker', icon: '🗃️' },
+  { id: 'watchman', name: 'Watchman', icon: '👁️' },
+  { id: 'farm_supervisor', name: 'Farm Supervisor', icon: '📋' },
+  { id: 'goat_caretaker', name: 'Goat Caretaker', icon: '🐐' },
+  { id: 'sheep_caretaker', name: 'Sheep Caretaker', icon: '🐑' },
+  { id: 'cow_caretaker', name: 'Cow Caretaker', icon: '🐄' },
+  { id: 'poultry_worker', name: 'Poultry Worker', icon: '🐔' },
+  { id: 'fish_farm_worker', name: 'Fish Farm Worker', icon: '🐟' },
+  { id: 'irrigation_worker', name: 'Irrigation Worker', icon: '💧' },
+  { id: 'sprayer_worker', name: 'Sprayer Worker', icon: '💨' },
+  { id: 'fence_worker', name: 'Fence Worker', icon: '🔧' },
+  { id: 'tractor_driver', name: 'Tractor Driver', icon: '🚜' },
+  { id: 'jcb_driver', name: 'JCB Driver', icon: '🏗️' },
+  { id: 'harvester_operator', name: 'Harvester Operator', icon: '⚙️' },
+  { id: 'drone_operator', name: 'Drone Operator', icon: '🚁' },
+];
+
+/**
+ * Machine Types — all available machine categories.
+ * Adding a new machine: just add a new object here.
+ */
+const MACHINE_TYPES = [
+  // Tillage
+  { id: 'tractor', name: 'Tractor', icon: '🚜', group: 'Tillage' },
+  { id: 'power_tiller', name: 'Power Tiller', icon: '🔄', group: 'Tillage' },
+  { id: 'rotavator', name: 'Rotavator', icon: '⚙️', group: 'Tillage' },
+  { id: 'cultivator', name: 'Cultivator', icon: '🌱', group: 'Tillage' },
+  { id: 'disc_harrow', name: 'Disc Harrow', icon: '🔘', group: 'Tillage' },
+  { id: 'laser_land_leveller', name: 'Laser Land Leveller', icon: '📐', group: 'Tillage' },
+  { id: 'mulcher', name: 'Mulcher', icon: '🌿', group: 'Tillage' },
+
+  // Seeding & Planting
+  { id: 'seeder', name: 'Seeder', icon: '🫘', group: 'Seeding' },
+  { id: 'seed_drill', name: 'Seed Drill', icon: '🔩', group: 'Seeding' },
+  { id: 'rice_transplanter', name: 'Rice Transplanter', icon: '🌾', group: 'Seeding' },
+  { id: 'happy_seeder', name: 'Happy Seeder', icon: '😊', group: 'Seeding' },
+  { id: 'fertilizer_spreader', name: 'Fertilizer Spreader', icon: '🌟', group: 'Seeding' },
+
+  // Spraying
+  { id: 'sprayer', name: 'Sprayer', icon: '💦', group: 'Spraying' },
+  { id: 'boom_sprayer', name: 'Boom Sprayer', icon: '💨', group: 'Spraying' },
+  { id: 'drone_sprayer', name: 'Drone Sprayer', icon: '🚁', group: 'Spraying' },
+
+  // Harvesting
+  { id: 'combine_harvester', name: 'Combine Harvester', icon: '🌾', group: 'Harvesting' },
+  { id: 'mini_harvester', name: 'Mini Harvester', icon: '⚙️', group: 'Harvesting' },
+  { id: 'reaper', name: 'Reaper', icon: '🔪', group: 'Harvesting' },
+  { id: 'threshing_machine', name: 'Threshing Machine', icon: '🔨', group: 'Harvesting' },
+  { id: 'baler', name: 'Baler', icon: '📦', group: 'Harvesting' },
+  { id: 'sugarcane_harvester', name: 'Sugarcane Harvester', icon: '🎋', group: 'Harvesting' },
+  { id: 'corn_sheller', name: 'Corn Sheller', icon: '🌽', group: 'Harvesting' },
+
+  // Weeding
+  { id: 'paddy_weeder', name: 'Paddy Weeder', icon: '🌿', group: 'Weeding' },
+  { id: 'power_weeder', name: 'Power Weeder', icon: '⚡', group: 'Weeding' },
+
+  // Earthmoving
+  { id: 'jcb', name: 'JCB', icon: '🏗️', group: 'Earthmoving' },
+  { id: 'excavator', name: 'Excavator', icon: '🏗️', group: 'Earthmoving' },
+  { id: 'backhoe_loader', name: 'Backhoe Loader', icon: '🔧', group: 'Earthmoving' },
+  { id: 'loader', name: 'Loader', icon: '🔄', group: 'Earthmoving' },
+  { id: 'bulldozer', name: 'Bulldozer', icon: '🚧', group: 'Earthmoving' },
+
+  // Transport
+  { id: 'tipper', name: 'Tipper', icon: '🚛', group: 'Transport' },
+  { id: 'water_tanker', name: 'Water Tanker', icon: '💧', group: 'Transport' },
+  { id: 'mini_tractor', name: 'Mini Tractor', icon: '🚜', group: 'Transport' },
+
+  // Utility
+  { id: 'generator', name: 'Generator', icon: '⚡', group: 'Utility' },
+  { id: 'pump_set', name: 'Pump Set', icon: '💧', group: 'Utility' },
+  { id: 'post_hole_digger', name: 'Post Hole Digger', icon: '🕳️', group: 'Utility' },
+];
+
+/**
+ * Indian States for crop recommendation
+ */
+const STATES = [
+  { id: 'ap', name: 'Andhra Pradesh' },
+  { id: 'ts', name: 'Telangana' },
+  { id: 'tn', name: 'Tamil Nadu' },
+  { id: 'ka', name: 'Karnataka' },
+  { id: 'kl', name: 'Kerala' },
+  { id: 'mh', name: 'Maharashtra' },
+  { id: 'gj', name: 'Gujarat' },
+  { id: 'rj', name: 'Rajasthan' },
+  { id: 'up', name: 'Uttar Pradesh' },
+  { id: 'pb', name: 'Punjab' },
+  { id: 'hr', name: 'Haryana' },
+  { id: 'mp', name: 'Madhya Pradesh' },
+  { id: 'wb', name: 'West Bengal' },
+  { id: 'od', name: 'Odisha' },
+  { id: 'br', name: 'Bihar' },
+];
+
+module.exports = { LABOUR_CATEGORIES, MACHINE_TYPES, STATES };

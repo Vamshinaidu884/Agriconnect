@@ -1,78 +1,85 @@
-import { useState, useMemo } from 'react';
-import Header from '../components/Header';
-import BottomNav from '../components/BottomNav';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, Filter } from 'lucide-react';
+import Layout from '../components/Layout';
 import RequestCard from '../components/RequestCard';
-import { useAuth } from '../context/AuthContext';
-import { useApp } from '../context/AppContext';
-import { calculateDistance } from '../utils/distance';
-import { Search, Filter } from 'lucide-react';
+import Spinner from '../components/Spinner';
+import ErrorMessage from '../components/ErrorMessage';
+import { useNearby } from '../hooks/useNearby';
 import './NearbyRequests.css';
 
-export default function NearbyRequests() {
-  const [filter, setFilter] = useState('all');
-  const [search, setSearch] = useState('');
-  const { user } = useAuth();
-  const { requests } = useApp();
+const RADII = [5, 10, 20, 50];
 
-  const filteredRequests = useMemo(() => {
-    let filtered = requests.filter(r => r.status === 'pending' && r.farmerId !== user?.id);
-    if (filter === 'labour') filtered = filtered.filter(r => r.type === 'labour');
-    if (filter === 'machine') filtered = filtered.filter(r => r.type === 'machine');
-    if (search) {
-      const s = search.toLowerCase();
-      filtered = filtered.filter(r => r.title.toLowerCase().includes(s) || r.workType.toLowerCase().includes(s) || r.district.toLowerCase().includes(s));
-    }
-    return filtered.map(r => {
-      const dist = user?.location ? calculateDistance(user.location.lat, user.location.lng, r.location.lat, r.location.lng) : null;
-      return { ...r, distance: dist };
-    }).sort((a, b) => (a.distance || 999) - (b.distance || 999));
-  }, [requests, filter, search, user]);
+export default function NearbyRequests() {
+  const [radius, setRadius] = useState(20);
+  const [typeFilter, setTypeFilter] = useState('all');
+  const { location, requests, loading, locationError, error, refetch } = useNearby(radius);
+  const navigate = useNavigate();
+
+  const filtered = typeFilter === 'all' ? requests : requests.filter(r => r.type === typeFilter);
 
   return (
-    <div className="app-layout">
-      <Header />
-      <div className="page page-with-header" id="nearby-page">
-        <h1 className="heading-2" style={{ marginBottom: '0.5rem' }}>Explore Requests</h1>
-        <p className="body-text" style={{ marginBottom: '1rem' }}>Find work near you</p>
+    <Layout title="Nearby Requests">
+      <div id="nearby-page">
 
-        <div className="nearby-search">
-          <Search size={18} className="nearby-search-icon" />
-          <input className="nearby-search-input" placeholder="Search by title, type, or location..." value={search} onChange={e => setSearch(e.target.value)} id="nearby-search" />
+        {/* Location Status */}
+        <div className="nearby-location-bar">
+          <MapPin size={15} />
+          <span>
+            {location
+              ? `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`
+              : locationError || 'Getting your location...'}
+          </span>
         </div>
 
+        {/* Filters */}
         <div className="nearby-filters">
-          {[
-            { id: 'all', label: 'All' },
-            { id: 'labour', label: '👷 Labour' },
-            { id: 'machine', label: '🚜 Machine' },
-          ].map(f => (
-            <button key={f.id} className={`nearby-filter ${filter === f.id ? 'nearby-filter-active' : ''}`} onClick={() => setFilter(f.id)} id={`filter-${f.id}`}>
-              {f.label}
-            </button>
-          ))}
+          <div className="nearby-radius-tabs">
+            {RADII.map(r => (
+              <button key={r}
+                className={`radius-tab ${radius === r ? 'radius-tab-active' : ''}`}
+                onClick={() => setRadius(r)}>
+                {r} km
+              </button>
+            ))}
+          </div>
+          <div className="nearby-type-tabs">
+            {['all', 'labour', 'machine'].map(t => (
+              <button key={t}
+                className={`type-tab ${typeFilter === t ? 'type-tab-active' : ''}`}
+                onClick={() => setTypeFilter(t)}>
+                {t === 'all' ? '🌐 All' : t === 'labour' ? '👷 Labour' : '🚜 Machine'}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="nearby-count">
-          <span>{filteredRequests.length} request{filteredRequests.length !== 1 ? 's' : ''} found</span>
-        </div>
+        {/* Results */}
+        {loading && <Spinner text="Finding nearby requests..." />}
+        {!loading && error && <ErrorMessage message={error} onRetry={refetch} />}
 
-        <div className="nearby-list">
-          {filteredRequests.length === 0 ? (
-            <div className="nearby-empty">
-              <span className="nearby-empty-emoji">🔍</span>
-              <h3>No requests found</h3>
-              <p>Try changing your filters or check back later</p>
+        {!loading && !error && filtered.length === 0 && (
+          <div className="nearby-empty">
+            <span>🗺️</span>
+            <h3>No requests found nearby</h3>
+            <p>Try increasing the search radius or check back later</p>
+          </div>
+        )}
+
+        {!loading && !error && filtered.length > 0 && (
+          <>
+            <p className="nearby-count">
+              {filtered.length} request{filtered.length !== 1 ? 's' : ''} within {radius} km
+            </p>
+            <div className="nearby-list">
+              {filtered.map(req => (
+                <RequestCard key={req._id || req.id} request={req}
+                  onClick={() => navigate(`/request/${req._id || req.id}`)} />
+              ))}
             </div>
-          ) : (
-            filteredRequests.map((req, i) => (
-              <div key={req.id} style={{ animationDelay: `${i * 0.06}s` }}>
-                <RequestCard request={req} showDistance distance={req.distance} />
-              </div>
-            ))
-          )}
-        </div>
+          </>
+        )}
       </div>
-      <BottomNav />
-    </div>
+    </Layout>
   );
 }

@@ -1,11 +1,14 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Users, Phone, Calendar, Utensils, Ruler } from 'lucide-react';
-import Header from '../components/Header';
+import { MapPin, Clock, Users, Phone, Calendar, Ruler } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import Layout from '../components/Layout';
 import RatingStars from '../components/RatingStars';
 import StatusBadge from '../components/StatusBadge';
+import Spinner from '../components/Spinner';
+import ErrorMessage from '../components/ErrorMessage';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
-import { canAcceptRequest } from '../utils/fcfs';
+import { requestService } from '../services/requestService';
 import { formatPrice, formatDate, getTimeSlotLabel } from '../utils/helpers';
 import { southIndianStates } from '../data/categories';
 import { calculateDistance } from '../utils/distance';
@@ -14,40 +17,79 @@ import './RequestDetail.css';
 export default function RequestDetail() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { requests, acceptRequest, getUserById } = useApp();
+  const { acceptRequest, withdrawRequest, completeRequest } = useApp();
   const navigate = useNavigate();
 
-  const request = requests.find(r => r.id === id);
-  if (!request) {
-    return (
-      <div className="app-layout">
-        <Header title="Request" showBack />
-        <div className="page page-with-header">
-          <div className="nearby-empty">
-            <span className="nearby-empty-emoji">❓</span>
-            <h3>Request not found</h3>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const [request, setRequest] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const stateName = southIndianStates.find(s => s.id === request.state)?.name || '';
-  const dist = user?.location ? calculateDistance(user.location.lat, user.location.lng, request.location.lat, request.location.lng) : null;
-  const canAccept = canAcceptRequest(request, user?.id);
-  const isMyRequest = request.farmerId === user?.id;
-  const hasAccepted = request.acceptedUsers?.includes(user?.id);
-
-  const handleAccept = () => {
-    if (user?.id) {
-      acceptRequest(request.id, user.id);
+  const fetchRequest = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const data = await requestService.getById(id);
+      setRequest(data.request);
+    } catch (err) {
+      setError(err.message || 'Request not found');
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchRequest();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <Layout title="Request Details" showBack>
+        <Spinner text="Loading details..." />
+      </Layout>
+    );
+  }
+
+  if (error || !request) {
+    return (
+      <Layout title="Request Details" showBack>
+        <ErrorMessage message={error || 'Request not found'} onRetry={fetchRequest} />
+      </Layout>
+    );
+  }
+
+  const stateName = southIndianStates.find(s => s.id === request.state)?.name || request.state || '';
+  const dist = user?.location && request.location
+    ? calculateDistance(user.location.lat, user.location.lng, request.location.lat, request.location.lng)
+    : null;
+
+  const isMyRequest = request.farmerId === user?._id;
+  const hasAccepted = request.acceptedUsers?.some(u => u.userId === user?._id);
+  const canAccept = !isMyRequest && !hasAccepted && request.workersAccepted < request.workersNeeded && ['pending', 'active'].includes(request.status);
+
+  const handleAccept = async () => {
+    try {
+      await acceptRequest(request._id || request.id);
+      fetchRequest();
+    } catch (err) { /* silent */ }
+  };
+
+  const handleWithdraw = async () => {
+    try {
+      await withdrawRequest(request._id || request.id);
+      fetchRequest();
+    } catch (err) { /* silent */ }
+  };
+
+  const handleComplete = async () => {
+    try {
+      await completeRequest(request._id || request.id);
+      fetchRequest();
+    } catch (err) { /* silent */ }
+  };
+
   return (
-    <div className="app-layout">
-      <Header title="Request Details" showBack />
-      <div className="page page-with-header" id="request-detail-page">
+    <Layout title="Request Details" showBack>
+      <div id="request-detail-page">
         {/* Status & Type */}
         <div className="detail-top">
           <span className="detail-type-badge">{request.type === 'labour' ? '👷 Labour' : '🚜 Machine'}</span>
@@ -89,7 +131,7 @@ export default function RequestDetail() {
             <MapPin size={16} />
             <div>
               <span className="detail-item-label">Location</span>
-              <span className="detail-item-value">{request.district}, {stateName}</span>
+              <span className="detail-item-value">{request.location?.address || `${request.district}, ${stateName}`}</span>
             </div>
           </div>
           {dist !== null && (
@@ -101,21 +143,16 @@ export default function RequestDetail() {
               </div>
             </div>
           )}
-          {request.landArea && (
-            <div className="detail-item">
-              <MapPin size={16} />
-              <div>
-                <span className="detail-item-label">Land Area</span>
-                <span className="detail-item-value">{request.landArea} {request.landUnit}</span>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Farmer Info */}
         <div className="detail-farmer card">
           <div className="detail-farmer-info">
-            <span className="detail-farmer-avatar">{request.farmerAvatar}</span>
+            {request.farmerAvatar ? (
+              <span className="detail-farmer-avatar">{request.farmerAvatar}</span>
+            ) : (
+              <div className="detail-farmer-avatar-placeholder">👨‍🌾</div>
+            )}
             <div>
               <h3 className="detail-farmer-name">{request.farmerName}</h3>
               <RatingStars rating={request.farmerRating} size={14} />
@@ -133,23 +170,20 @@ export default function RequestDetail() {
           <div className="detail-section">
             <h3 className="heading-3">Accepted Workers ({request.acceptedUsers.length})</h3>
             <div className="detail-workers-list">
-              {request.acceptedUsers.map(uid => {
-                const w = getUserById(uid);
-                return (
-                  <div key={uid} className="detail-worker card">
-                    <span className="detail-worker-avatar">{w?.avatar || '👤'}</span>
-                    <div className="detail-worker-info">
-                      <span className="detail-worker-name">{w?.name || 'User'}</span>
-                      {w && <RatingStars rating={w.rating} size={12} />}
-                    </div>
-                    {w?.phone && (
-                      <a href={`tel:${w.phone}`} className="btn btn-outline btn-sm">
-                        <Phone size={14} />
-                      </a>
-                    )}
+              {request.acceptedUsers.map((w, idx) => (
+                <div key={idx} className="detail-worker card">
+                  <div className="detail-worker-placeholder">👤</div>
+                  <div className="detail-worker-info">
+                    <span className="detail-worker-name">{w.userName}</span>
+                    <RatingStars rating={w.userRating || 0} size={12} />
                   </div>
-                );
-              })}
+                  {w.userPhone && (
+                    <a href={`tel:${w.userPhone}`} className="btn btn-outline btn-sm">
+                      <Phone size={14} />
+                    </a>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -161,18 +195,23 @@ export default function RequestDetail() {
               ✅ Accept Request
             </button>
           )}
-          {hasAccepted && (
-            <div className="detail-accepted-msg">
-              <span>✅ You have accepted this request</span>
+          {hasAccepted && request.status !== 'completed' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', width: '100%' }}>
+              <div className="detail-accepted-msg">
+                <span>✅ You have accepted this request</span>
+              </div>
+              <button className="btn btn-secondary btn-full" onClick={handleWithdraw} id="withdraw-request">
+                Withdraw Acceptance
+              </button>
             </div>
           )}
           {isMyRequest && request.status === 'active' && (
-            <button className="btn btn-primary btn-full btn-lg" onClick={() => navigate(`/rate/${request.id}`)} id="complete-request">
+            <button className="btn btn-primary btn-full btn-lg" onClick={handleComplete} id="complete-request">
               🏁 Mark as Completed
             </button>
           )}
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

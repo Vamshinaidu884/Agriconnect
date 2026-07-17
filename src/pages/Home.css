@@ -185,7 +185,22 @@
   transform: scale(0.95);
 }
 
-@media (max-width: 480px) {
+@media (min-width: 768px) {
+  .home-actions {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .home-stats {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 800px;
+  }
+  .home-fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+  }
+}
+
+@media (max-width: 767px) {
   .home-fab {
     right: var(--space-base);
   }

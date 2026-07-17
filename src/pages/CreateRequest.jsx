@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
-import Header from '../components/Header';
+import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 import { labourCategories, machineCategories, workTimeSlots, southIndianStates } from '../data/categories';
@@ -28,39 +28,30 @@ export default function CreateRequest() {
   const selectedCat = categories.find(c => c.id === form.subType);
   const stateName = southIndianStates.find(s => s.id === user?.state)?.name || '';
 
-  const update = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
+  const update = (field, val) => setForm(f => ({ ...f, [field]: val }));
 
   const canNext = () => {
     if (step === 0) return !!form.type;
     if (step === 1) return !!form.subType && !!form.title;
-    if (step === 2) return !!form.date && !!form.priceOffered && form.workersNeeded > 0;
+    if (step === 2) return !!form.date && !!form.timeSlot && !!form.priceOffered && form.workersNeeded >= 1;
     return true;
   };
 
   const handleSubmit = () => {
     const request = {
       ...form,
-      farmerId: user.id,
-      farmerName: user.name,
-      farmerRating: user.rating || 0,
-      farmerAvatar: user.avatar || '👤',
-      farmerPhone: user.phone || '',
-      workType: selectedCat?.name || '',
-      priceOffered: Number(form.priceOffered),
-      landArea: Number(form.landArea),
-      workersNeeded: Number(form.workersNeeded),
+      date: new Date(form.date),
       location: user.location,
       district: user.district,
-      state: user.state,
+      state: user.state
     };
     createRequest(request);
     navigate('/my-requests', { replace: true });
   };
 
   return (
-    <div className="app-layout">
-      <Header title="Create Request" showBack />
-      <div className="page page-with-header" id="create-request-page">
+    <Layout title="Create Request" showBack>
+      <div id="create-request-page">
         {/* Step Indicator */}
         <div className="steps">
           {STEPS.map((s, i) => (
@@ -257,6 +248,6 @@ export default function CreateRequest() {
           )}
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }

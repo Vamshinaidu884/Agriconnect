@@ -2,13 +2,13 @@
   min-height: 100vh;
   padding: var(--space-2xl) var(--space-xl);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
 }
 
 .register-content {
   width: 100%;
-  max-width: 420px;
+  max-width: 460px;
   display: flex;
   flex-direction: column;
   gap: var(--space-xl);

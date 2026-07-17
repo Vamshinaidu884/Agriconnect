@@ -1,111 +1,99 @@
-import { useState, useMemo } from 'react';
-import { Leaf, Droplets, Sun, AlertTriangle, Calendar } from 'lucide-react';
-import Header from '../components/Header';
-import BottomNav from '../components/BottomNav';
-import { useAuth } from '../context/AuthContext';
-import { cropRecommendations, getSeasonForMonth } from '../data/intelligence';
-import { southIndianStates } from '../data/categories';
+import { useState, useEffect } from 'react';
+import Layout from '../components/Layout';
+import Spinner from '../components/Spinner';
+import { cropService } from '../services/cropService';
+import { ALL_STATES } from '../constants/categories';
 import './CropRecommendation.css';
 
+const SEASONS = [
+  { id: 'kharif', label: 'Kharif', desc: 'Jun – Nov (Monsoon)', icon: '🌧️' },
+  { id: 'rabi', label: 'Rabi', desc: 'Nov – Apr (Winter)', icon: '❄️' },
+];
+
 export default function CropRecommendation() {
-  const { user } = useAuth();
-  const currentMonth = new Date().getMonth();
-  const defaultSeason = getSeasonForMonth(currentMonth);
-  const [season, setSeason] = useState(defaultSeason);
-  const [selectedState, setSelectedState] = useState(user?.state || 'ap');
+  const [state, setState] = useState('ap');
+  const [season, setSeason] = useState('');
+  const [crops, setCrops] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const stateName = southIndianStates.find(s => s.id === selectedState)?.name || '';
-  const crops = useMemo(() => {
-    const stateData = cropRecommendations[selectedState];
-    return stateData?.[season] || [];
-  }, [selectedState, season]);
-
-  const getRiskColor = (risk) => {
-    const map = { low: 'success', medium: 'warning', high: 'error' };
-    return map[risk] || 'warning';
+  const fetchCrops = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await cropService.getRecommendations(state, season);
+      setCrops(data.crops || []);
+      if (!season) setSeason(data.season);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  useEffect(() => { fetchCrops(); }, [state, season]);
+
+  const riskColor = (r) => r === 'low' ? '#2E7D32' : r === 'medium' ? '#F9A825' : '#C62828';
+
   return (
-    <div className="app-layout">
-      <Header title="Crop Recommendation" showBack />
-      <div className="page page-with-header" id="crop-recommendation-page">
-        <div className="cr-header">
-          <div className="cr-header-icon">🌾</div>
-          <h1 className="heading-2">Crop Recommendations</h1>
-          <p className="body-text">Smart suggestions based on your location and season</p>
+    <Layout title="Crop Recommendation" showBack>
+      <div id="crop-recommendation-page">
+
+        {/* State Selector */}
+        <div className="input-group">
+          <label className="input-label">Select State</label>
+          <select id="crop-state" className="input-field select-field"
+            value={state} onChange={(e) => setState(e.target.value)}>
+            {ALL_STATES.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
         </div>
 
-        {/* Filters */}
-        <div className="cr-filters">
-          <div className="input-group">
-            <label className="input-label">State</label>
-            <select className="input-field select-field" value={selectedState} onChange={e => setSelectedState(e.target.value)} id="cr-state">
-              {southIndianStates.map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="cr-season-toggle">
-            <button className={`cr-season-btn ${season === 'kharif' ? 'cr-season-active' : ''}`} onClick={() => setSeason('kharif')} id="season-kharif">
-              🌧️ Kharif
+        {/* Season Selector */}
+        <div className="crop-seasons">
+          {SEASONS.map(s => (
+            <button key={s.id} id={`season-${s.id}`}
+              className={`season-card card ${season === s.id ? 'season-selected' : ''}`}
+              onClick={() => setSeason(s.id)}>
+              <span className="season-icon">{s.icon}</span>
+              <span className="season-label">{s.label}</span>
+              <span className="season-desc">{s.desc}</span>
             </button>
-            <button className={`cr-season-btn ${season === 'rabi' ? 'cr-season-active' : ''}`} onClick={() => setSeason('rabi')} id="season-rabi">
-              ❄️ Rabi
-            </button>
-          </div>
-        </div>
-
-        <div className="cr-info-bar">
-          <span>📍 {stateName}</span>
-          <span>🗓️ {season === 'kharif' ? 'Jun - Nov' : 'Oct - Mar'}</span>
-          <span>🌱 {crops.length} crops</span>
-        </div>
-
-        {/* Crop Cards */}
-        <div className="cr-crops">
-          {crops.map((crop, i) => (
-            <div key={crop.name} className="cr-crop-card card" style={{ animationDelay: `${i * 0.08}s` }} id={`crop-${i}`}>
-              <div className="cr-crop-header">
-                <span className="cr-crop-emoji">{crop.emoji}</span>
-                <div className="cr-crop-title-area">
-                  <h3 className="cr-crop-name">{crop.name}</h3>
-                  <span className={`badge badge-${getRiskColor(crop.risk)}`}>
-                    {crop.risk === 'low' ? '✅' : '⚠️'} {crop.risk} risk
-                  </span>
-                </div>
-              </div>
-
-              <div className="cr-crop-details">
-                <div className="cr-crop-detail">
-                  <Leaf size={14} />
-                  <span>Yield: <strong>{crop.yield}</strong></span>
-                </div>
-                <div className="cr-crop-detail">
-                  <Calendar size={14} />
-                  <span>Season: <strong>{crop.season}</strong></span>
-                </div>
-                <div className="cr-crop-detail">
-                  <Droplets size={14} />
-                  <span>Water: <strong>{crop.water}</strong></span>
-                </div>
-                <div className="cr-crop-detail">
-                  <Sun size={14} />
-                  <span>Soil: <strong>{crop.soil}</strong></span>
-                </div>
-              </div>
-            </div>
           ))}
         </div>
 
-        {crops.length === 0 && (
-          <div className="nearby-empty">
-            <span className="nearby-empty-emoji">🌾</span>
-            <h3>No data available</h3>
-            <p>Crop recommendations for this state/season will be added soon</p>
+        {loading && <Spinner text="Getting recommendations..." />}
+        {error && <p style={{ color: '#C62828', textAlign: 'center' }}>{error}</p>}
+
+        {!loading && crops.length > 0 && (
+          <div className="crop-grid">
+            {crops.map((crop, i) => (
+              <div key={i} className="crop-card card">
+                <div className="crop-top">
+                  <span className="crop-emoji">{crop.emoji}</span>
+                  <div>
+                    <h3 className="crop-name">{crop.name}</h3>
+                    <span className="crop-risk" style={{ color: riskColor(crop.risk) }}>
+                      ● {crop.risk} risk
+                    </span>
+                  </div>
+                </div>
+                <div className="crop-details">
+                  <div className="crop-detail"><span>📅</span> {crop.season || season}</div>
+                  <div className="crop-detail"><span>📦</span> {crop.yield}</div>
+                  <div className="crop-detail"><span>💧</span> Water: {crop.water}</div>
+                  <div className="crop-detail"><span>🌍</span> {crop.soil}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && crops.length === 0 && !error && (
+          <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
+            <p>No crops found for selected state/season</p>
           </div>
         )}
       </div>
-      <BottomNav />
-    </div>
+    </Layout>
   );
 }
