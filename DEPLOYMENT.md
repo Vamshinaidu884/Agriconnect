@@ -1,10 +1,12 @@
 # Deployment Guide
 
-## Recommended hosting
+## Project structure
 
-- Frontend: Vercel
-- Backend: Render
-- Database: MongoDB Atlas
+- **Frontend:** repository root. React and Vite files are under `src/` and `public/`.
+- **Backend:** `backend/`. Node.js, Express, Mongoose, API routes, and backend secrets are here.
+- **Database:** MongoDB Atlas.
+- **Frontend hosting:** Vercel.
+- **Backend hosting:** Render.
 
 ## 1. Create MongoDB Atlas
 
@@ -22,15 +24,41 @@ Do not commit this value. Enter it only in Render environment variables.
 ## 2. Deploy the backend to Render
 
 1. Push this repository to GitHub.
-2. In Render, select **New > Blueprint** and choose this repository.
-3. Render will read `render.yaml`.
-4. Enter `MONGODB_URI` and `JWT_SECRET`.
-5. Enter optional Cloudinary, weather, plant, and email secrets only if those features are used.
-6. Deploy and verify:
+2. Open https://dashboard.render.com and select **New > Blueprint**.
+3. Connect `Vamshinaidu884/Agriconnect`.
+4. Render reads `render.yaml` and the backend `rootDir: backend`.
+5. Create each required environment variable below.
+6. Deploy, then verify:
 
 ```text
 https://YOUR-SERVICE.onrender.com/api/health
 ```
+
+### Render environment variables
+
+| Variable | Required | Value/source |
+|---|---:|---|
+| `NODE_ENV` | Yes | `production` |
+| `PORT` | Yes | `10000`, or allow Render to provide it |
+| `MONGODB_URI` | Yes | MongoDB Atlas connection string |
+| `JWT_SECRET` | Yes | Generate a random 64-byte secret |
+| `JWT_EXPIRES_IN` | Yes | `7d` |
+| `CLIENT_URL` | Yes | Vercel frontend URL |
+| `CLOUDINARY_CLOUD_NAME` | Optional | Cloudinary dashboard |
+| `CLOUDINARY_API_KEY` | Optional | Cloudinary dashboard |
+| `CLOUDINARY_API_SECRET` | Optional | Cloudinary dashboard |
+| `OPENWEATHER_API_KEY` | Optional | OpenWeather dashboard |
+| `PLANTID_API_KEY` | Optional | Plant.id dashboard |
+| `EMAIL_USER` | Optional | Gmail address |
+| `EMAIL_PASS` | Optional | Gmail app password |
+
+Generate `JWT_SECRET` locally with:
+
+```powershell
+[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(64))
+```
+
+Do not use the example value or reuse a password.
 
 ## 3. Deploy the frontend to Vercel
 

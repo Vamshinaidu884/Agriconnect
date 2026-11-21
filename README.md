@@ -21,7 +21,7 @@ Agri Connect bridges the gap between farmers who need help and workers/machine o
 | **Styling** | Vanilla CSS (custom design system) |
 | **State Management** | React Context API |
 | **Storage** | localStorage (mock backend) |
-| **Backend folder** | Present but not yet wired |
+| **Backend** | Node.js 18+, Express, MongoDB/Mongoose |
 
 ---
 
@@ -295,16 +295,49 @@ Session is stored in **localStorage** via `AuthContext`.
 
 ## 🚀 Running the App
 
-```bash
-# Install dependencies
-npm install
+The project uses one repository with two applications:
 
-# Start development server
-npm run dev
-
-# Open in browser
-http://localhost:5173/
+```text
+agriconnect/
+├── src/                    # Frontend React/Vite source
+├── public/                 # Frontend static assets
+├── package.json            # Frontend scripts and dependencies
+├── vercel.json             # Vercel SPA routing
+├── .env.example            # Frontend environment template
+├── backend/
+│   ├── server.js           # Backend entry point
+│   ├── config/             # MongoDB and external-service config
+│   ├── controllers/        # API request handlers
+│   ├── middleware/         # Authentication and error middleware
+│   ├── models/             # Mongoose models
+│   ├── routes/             # Express routes
+│   ├── services/           # Email, storage, and external APIs
+│   ├── package.json        # Backend scripts and dependencies
+│   └── .env.example        # Backend environment template
+├── render.yaml             # Render backend blueprint
+└── DEPLOYMENT.md           # Production deployment guide
 ```
+
+### Frontend
+
+```powershell
+npm ci
+Copy-Item .env.example .env.local
+npm run dev
+```
+
+Open http://localhost:5173.
+
+### Backend
+
+```powershell
+Set-Location backend
+npm ci
+Copy-Item .env.example .env
+npm run dev
+```
+
+Open http://localhost:5000/api/health.
 
 ---
 

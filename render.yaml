@@ -1,10 +1,11 @@
 services:
   - type: web
-    name: agrimatch-api
-    env: node
+    name: agriconnect-api
+    runtime: node
     region: singapore
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && node server.js
+    rootDir: backend
+    buildCommand: npm ci
+    startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
