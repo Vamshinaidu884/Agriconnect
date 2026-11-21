@@ -5,6 +5,7 @@ services:
     region: singapore
     buildCommand: cd backend && npm install
     startCommand: cd backend && node server.js
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
@@ -29,4 +30,4 @@ services:
       - key: EMAIL_PASS
         sync: false
       - key: CLIENT_URL
-        value: https://agrimatch.vercel.app
+        sync: false

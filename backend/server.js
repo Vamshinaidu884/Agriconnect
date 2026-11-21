@@ -10,13 +10,17 @@ const errorHandler = require('./middleware/errorHandler');
 
 // Load environment variables
 dotenv.config();
-if (!process.env.JWT_SECRET) {
+if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'production') {
   process.env.JWT_SECRET = 'agri_connect_local_dev_secret_2026';
+}
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET is required in production');
 }
 console.log("Mongo URI Loaded:", process.env.MONGODB_URI ? "YES" : "NO");
 console.log("JWT Secret Loaded:", process.env.JWT_SECRET ? "YES" : "NO");
 
 const seedDefaultUser = async () => {
+  if (process.env.NODE_ENV === 'production') return;
   try {
     const email = 'siva_test@gmail.com';
     const existing = await User.findOne({ email });
@@ -52,7 +56,20 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin) || (origin && (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')))) {
+      const configuredOrigins = (process.env.CLIENT_URL || '')
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean);
+      const allAllowedOrigins = [
+        ...allowedOrigins,
+        ...configuredOrigins,
+      ];
+      if (
+        !origin ||
+        allAllowedOrigins.includes(origin) ||
+        origin.startsWith('http://localhost') ||
+        origin.startsWith('http://127.0.0.1')
+      ) {
         callback(null, true);
       } else {
         console.error(`CORS blocked origin: ${origin}`);
@@ -76,6 +93,7 @@ app.use('/api/ratings', require('./routes/ratingRoutes'));
 app.use('/api/disease', require('./routes/diseaseRoutes'));
 app.use('/api/crops', require('./routes/cropRoutes'));
 app.use('/api/market', require('./routes/marketRoutes'));
+app.use('/api/recommendations', require('./routes/recommendationRoutes'));
 
 // ─── Health Check ────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

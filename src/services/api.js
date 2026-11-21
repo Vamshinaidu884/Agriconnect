@@ -1,5 +1,5 @@
 /* ============================================================
-   Axios API Instance — Central HTTP client for all API calls
+   Axios API Instance - Central HTTP client for all API calls
    Automatically attaches JWT token to every request.
    ============================================================ */
 import axios from 'axios';
@@ -12,20 +12,24 @@ const api = axios.create({
   timeout: 15000,
 });
 
-// ─── Request Interceptor: Attach JWT token ────────────────────
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('agri_connect_token') || localStorage.getItem('agrimatch_token');
+    const token =
+      localStorage.getItem('agri_connect_token') ||
+      localStorage.getItem('agrimatch_token');
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      if (!localStorage.getItem('agri_connect_token')) localStorage.setItem('agri_connect_token', token);
+      if (!localStorage.getItem('agri_connect_token')) {
+        localStorage.setItem('agri_connect_token', token);
+      }
     }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ─── Response Interceptor: Handle 401 globally ───────────────
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
@@ -36,6 +40,7 @@ api.interceptors.response.use(
       localStorage.removeItem('agrimatch_user');
       window.location.href = '/login';
     }
+
     const message =
       error.response?.data?.message ||
       error.message ||
