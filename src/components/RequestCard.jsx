@@ -1,19 +1,20 @@
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Clock, Users, ChevronRight } from 'lucide-react';
-import { formatPrice, formatTimeAgo, getTimeSlotLabel } from '../utils/helpers';
+import { formatPrice, formatTimeAgo } from '../utils/helpers';
 import { getRequestStatusInfo } from '../utils/fcfs';
 import './RequestCard.css';
 
-export default function RequestCard({ request, showDistance = false, distance = null }) {
+export default function RequestCard({ request, onClick, showDistance = false, distance = null }) {
   const navigate = useNavigate();
+  const requestId = request._id || request.id;
   const statusInfo = getRequestStatusInfo(request.status);
   const isMachine = request.type === 'machine';
 
   return (
     <div
       className="request-card card card-interactive"
-      onClick={() => navigate(`/request/${request.id}`)}
-      id={`request-card-${request.id}`}
+      onClick={onClick || (() => requestId && navigate(`/request/${requestId}`))}
+      id={requestId ? `request-card-${requestId}` : undefined}
     >
       <div className="request-card-header">
         <div className="request-card-type">

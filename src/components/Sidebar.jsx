@@ -2,9 +2,9 @@
    Collapsible & Responsive Navigation Sidebar
    ============================================================ */
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, ClipboardList, Tractor, Users, MapPin, BrainCircuit, BarChart3, Settings, User, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, ClipboardList, Tractor, MapPin, BrainCircuit, BarChart3, Sparkles, User, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { useTranslation } from '../context/LanguageContext';
 import './Sidebar.css';
 
@@ -18,6 +18,8 @@ export default function Sidebar() {
     { path: '/home', icon: Home, label: t('dashboard') },
     { path: '/my-requests', icon: ClipboardList, label: t('requests') },
     { path: '/machines', icon: Tractor, label: t('machines') },
+    { path: '/marketplace/machinery', icon: Tractor, label: 'Machinery marketplace' },
+    { path: '/recommendations', icon: Sparkles, label: 'Recommendations' },
     { path: '/nearby', icon: MapPin, label: t('nearby') },
     { path: '/disease-detection', icon: BrainCircuit, label: t('disease_detection') },
     { path: '/crop-recommendation', icon: BrainCircuit, label: t('crop_guide') },
@@ -30,7 +32,7 @@ export default function Sidebar() {
       {/* Brand Header */}
       <div className="sidebar-brand">
         <span className="sidebar-logo-emoji">🌾</span>
-        {!collapsed && <span className="sidebar-brand-name">AgriMatch</span>}
+        {!collapsed && <span className="sidebar-brand-name">Agri Connect</span>}
         <button
           className="sidebar-collapse-toggle"
           onClick={() => setCollapsed(!collapsed)}

@@ -32,7 +32,7 @@
 
 .home-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-sm);
   margin-bottom: var(--space-xl);
 }
@@ -76,6 +76,19 @@
 .home-section-header .home-section-title {
   margin-bottom: 0;
 }
+.home-section-header > div { display: flex; flex-direction: column; gap: 4px; }
+.home-section-header .home-section-title { display: flex; align-items: center; gap: 8px; }
+.home-section-header .home-section-title svg { color: var(--primary); }
+.home-section-header > div > p { color: var(--text-tertiary); font-size: var(--text-xs); }
+.home-recommendation-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.home-recommendation-card { overflow: hidden; display: flex; flex-direction: column; text-align: left; }
+.home-recommendation-card > img,.home-recommendation-emoji { width: 100%; height: 105px; object-fit: cover; }
+.home-recommendation-emoji { display: grid; place-items: center; background: var(--surface-elevated); font-size: 2.7rem; }
+.home-recommendation-info { display: flex; flex-direction: column; gap: 4px; padding: 11px; }
+.home-recommendation-info b { overflow: hidden; color: var(--text-primary); font-size: var(--text-sm); text-overflow: ellipsis; white-space: nowrap; }
+.home-recommendation-info small { color: var(--text-tertiary); font-size: .67rem; text-transform: capitalize; }
+.home-recommendation-info strong { margin-top: 3px; color: var(--primary); font-size: .75rem; }
+.home-recommendation-empty { display: flex; align-items: center; gap: 9px; padding: 16px; color: var(--primary); text-align: left; font-size: .8rem; }
 
 .home-actions {
   display: grid;
@@ -190,8 +203,8 @@
     grid-template-columns: repeat(4, 1fr);
   }
   .home-stats {
-    grid-template-columns: repeat(3, 1fr);
-    max-width: 800px;
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 960px;
   }
   .home-fab {
     position: fixed;
@@ -203,5 +216,10 @@
 @media (max-width: 767px) {
   .home-fab {
     right: var(--space-base);
+  }
+  @media (max-width: 520px) {
+    .home-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .home-recommendation-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .home-recommendation-card > img,.home-recommendation-emoji { height: 88px; }
   }
 }

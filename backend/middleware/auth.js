@@ -4,6 +4,8 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'agri_connect_local_dev_secret_2026';
+
 /**
  * Verifies JWT token from Authorization header.
  * Attaches the authenticated user to req.user.
@@ -25,7 +27,7 @@ const protect = async (req, res, next) => {
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
 
     // Find user (exclude password)
     const user = await User.findById(decoded.id).select('-password -resetOTP -resetOTPExpiry');

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Lock, Phone, MapPin, Eye, EyeOff } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { User, Mail, Lock, Phone, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '../context/useAuth';
 import { southIndianStates } from '../data/categories';
 import './Register.css';
 
@@ -27,7 +27,7 @@ export default function Register() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     if (!form.name || !form.email || !form.password || !form.phone || !form.state || !form.district) {
@@ -43,8 +43,8 @@ export default function Register() {
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      const result = register({
+    try {
+      await register({
         name: form.name,
         email: form.email,
         phone: form.phone,
@@ -56,13 +56,12 @@ export default function Register() {
         roles: [],
         location: selectedState?.center || { lat: 15.0, lng: 78.0 },
       });
-      if (result.success) {
-        navigate('/role-selection', { replace: true });
-      } else {
-        setError(result.message);
-      }
+      navigate('/role-selection', { replace: true });
+    } catch (err) {
+      setError(err.message || 'Could not create your account. Please try again.');
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   return (
@@ -74,9 +73,9 @@ export default function Register() {
           </div>
           <h1 className="login-title">
             <span className="brand-green">Agri</span>
-            <span className="brand-accent">Match</span>
+            <span className="brand-accent">Connect</span>
           </h1>
-          <p className="login-subtitle">Join AgriMatch today</p>
+          <p className="login-subtitle">Join Agri Connect today</p>
         </div>
 
         <form className="register-form" onSubmit={handleSubmit} id="register-form">

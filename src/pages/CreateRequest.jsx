@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import Layout from '../components/Layout';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { useApp } from '../context/AppContext';
 import { labourCategories, machineCategories, workTimeSlots, southIndianStates } from '../data/categories';
+import { getCurrentLocation, getStateCenter, isValidLocation } from '../utils/location';
 import './CreateRequest.css';
 
 const STEPS = ['Type', 'Details', 'Schedule', 'Confirm'];
@@ -37,16 +38,50 @@ export default function CreateRequest() {
     return true;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    let requestLocation = isValidLocation(user?.location) ? user.location : null;
+    if (!requestLocation) {
+      try {
+        requestLocation = await getCurrentLocation();
+      } catch {
+        requestLocation = getStateCenter(user?.state);
+      }
+    }
+
+    if (!requestLocation) {
+      alert('Set your location in your profile or allow location access to post a nearby request.');
+      return;
+    }
+
     const request = {
-      ...form,
+      title: form.title,
+      description: form.description,
+      type: form.type,
+      category: form.subType || selectedCat?.id || 'general',
+      workersNeeded: Number(form.workersNeeded) || 1,
       date: new Date(form.date),
-      location: user.location,
-      district: user.district,
-      state: user.state
+      timeSlot: form.timeSlot,
+      priceOffered: Number(form.priceOffered) || 0,
+      priceUnit: form.priceUnit,
+      foodProvided: !!form.foodProvided,
+      driverRequired: !!form.driverRequired,
+      landArea: Number(form.landArea) || 0,
+      landUnit: form.landUnit,
+      location: {
+        lat: Number(requestLocation.lat),
+        lng: Number(requestLocation.lng),
+        address: user?.location?.address || user?.village || user?.district || '',
+      },
+      district: user?.district || '',
+      state: user?.state || '',
     };
-    createRequest(request);
-    navigate('/my-requests', { replace: true });
+
+    try {
+      await createRequest(request);
+      navigate('/my-requests', { replace: true });
+    } catch (error) {
+      alert(error.message || 'Unable to save farm request. Please try again.');
+    }
   };
 
   return (

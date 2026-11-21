@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import './Splash.css';
 
 export default function Splash() {
@@ -30,7 +30,7 @@ export default function Splash() {
 
       <div className={`splash-content ${phase >= 1 ? 'visible' : ''}`}>
         <div className={`splash-logo-container ${phase >= 1 ? 'animate' : ''}`}>
-          <img src="/logo.png" alt="ArgiMatch" className="splash-logo" />
+          <img src="/logo.png" alt="Agri Connect" className="splash-logo" />
           <div className="splash-logo-glow" />
         </div>
 

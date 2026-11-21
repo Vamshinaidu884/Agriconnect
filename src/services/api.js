@@ -15,9 +15,10 @@ const api = axios.create({
 // ─── Request Interceptor: Attach JWT token ────────────────────
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('agrimatch_token');
+    const token = localStorage.getItem('agri_connect_token') || localStorage.getItem('agrimatch_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      if (!localStorage.getItem('agri_connect_token')) localStorage.setItem('agri_connect_token', token);
     }
     return config;
   },
@@ -29,6 +30,8 @@ api.interceptors.response.use(
   (response) => response.data,
   (error) => {
     if (error.response?.status === 401) {
+      localStorage.removeItem('agri_connect_token');
+      localStorage.removeItem('agri_connect_user');
       localStorage.removeItem('agrimatch_token');
       localStorage.removeItem('agrimatch_user');
       window.location.href = '/login';

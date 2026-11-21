@@ -211,11 +211,12 @@ const translations = {
 
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(() => {
-    return localStorage.getItem('agrimatch_lang') || 'en';
+    return localStorage.getItem('agri_connect_lang') || localStorage.getItem('agrimatch_lang') || 'en';
   });
 
   useEffect(() => {
-    localStorage.setItem('agrimatch_lang', language);
+    localStorage.setItem('agri_connect_lang', language);
+    if (localStorage.getItem('agrimatch_lang') !== language) localStorage.removeItem('agrimatch_lang');
   }, [language]);
 
   const t = (key) => {

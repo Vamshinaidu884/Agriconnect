@@ -19,8 +19,8 @@ const submitRating = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Target user and score are required' });
     }
 
-    const scoreNum = parseInt(score);
-    if (scoreNum < 1 || scoreNum > 5) {
+    const scoreNum = Number(score);
+    if (!Number.isInteger(scoreNum) || scoreNum < 1 || scoreNum > 5) {
       return res.status(400).json({ success: false, message: 'Score must be between 1 and 5' });
     }
 
@@ -41,9 +41,18 @@ const submitRating = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'You are not part of this request' });
     }
 
+    const isValidTarget = isFarmer
+      ? request.acceptedUsers.some((user) => user.userId.toString() === targetUserId)
+      : request.farmerId.toString() === targetUserId;
+    if (!isValidTarget || targetUserId === raterId) {
+      return res.status(400).json({ success: false, message: 'You can only rate another participant in this request' });
+    }
+
     // Check if already rated this user for this request
     const alreadyRated = request.ratings.some(
-      (r) => r.ratedBy.toString() === raterId && r.ratedFor === targetUserId
+      (rating) =>
+        rating.ratedBy?.toString() === raterId &&
+        rating.ratedFor?.toString() === targetUserId
     );
     if (alreadyRated) {
       return res.status(400).json({ success: false, message: 'You have already rated this user for this request' });

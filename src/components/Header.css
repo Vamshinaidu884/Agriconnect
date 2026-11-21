@@ -76,6 +76,8 @@
 .header-search-container {
   position: relative;
   width: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .header-search-icon {
@@ -88,10 +90,11 @@
 
 .header-search-input {
   width: 100%;
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius-full);
-  padding: 0.5rem 1rem 0.5rem 2.25rem;
+  padding: 0.5rem 2.5rem 0.5rem 2.25rem;
   font-size: 0.875rem;
   color: var(--text-primary);
   transition: all 0.2s;
@@ -100,6 +103,24 @@
 .header-search-input:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+.header-search-submit {
+  position: absolute;
+  right: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  transition: background 0.2s, color 0.2s;
+}
+
+.header-search-submit:hover {
+  background: var(--surface-hover);
+  color: var(--primary-light);
 }
 
 /* Actions */
@@ -167,7 +188,7 @@
 }
 
 .lang-dropdown { width: 140px; }
-.notif-dropdown { width: 260px; padding: 0.5rem 0; }
+.notif-dropdown { width: min(340px,calc(100vw - 24px)); padding: 0.5rem 0; }
 
 .header-dropdown-item {
   width: 100%;
@@ -188,6 +209,8 @@
   color: var(--primary-light);
 }
 
+.header-notif-wrapper .header-action-btn { position: relative; }
+.header-notif-badge { position: absolute; top: 1px; right: 1px; min-width: 16px; height: 16px; padding: 0 3px; display: grid; place-items: center; border: 2px solid var(--surface); border-radius: 9px; background: #d34339; color: #fff; font-size: .56rem; font-weight: 700; line-height: 1; }
 .dropdown-header {
   padding: 0.5rem 1rem;
   font-size: 0.8rem;
@@ -198,11 +221,18 @@
 
 .dropdown-body { max-height: 240px; overflow-y: auto; }
 .notif-item {
+  width: 100%;
   display: flex;
+  align-items: flex-start;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--surface-border);
+  text-align: left;
 }
+.notif-item.unread { background: var(--primary-subtle); }
+.notif-item.read .notif-bullet { color: var(--text-tertiary); }
+.notif-item > span:last-child { display: flex; flex-direction: column; gap: 4px; }
+.notif-empty { padding: 1rem; color: var(--text-tertiary); font-size: .78rem; }
 .notif-bullet { color: var(--primary-light); font-size: 0.6rem; margin-top: 4px; }
 .notif-text { font-size: 0.8rem; color: var(--text-primary); margin: 0; }
 .notif-time { font-size: 0.7rem; color: var(--text-tertiary); }
@@ -240,10 +270,14 @@
   .header {
     padding: 0 1rem;
   }
-  .header-search-container, .header-lang-label, .header-weather {
+  .header-lang-label, .header-weather {
     display: none !important;
   }
   .header-center {
+    min-width: 0;
     margin: 0 0.5rem;
+  }
+  .header-search-input {
+    font-size: 0.75rem;
   }
 }

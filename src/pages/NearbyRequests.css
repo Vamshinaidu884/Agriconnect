@@ -3,6 +3,7 @@
   background: #e8f5e9; border-radius: 8px; padding: 0.5rem 0.75rem;
   font-size: 0.8rem; color: #2E7D32; margin-bottom: 1rem;
 }
+.nearby-location-note { margin: -0.5rem 0 1rem; color: #666; font-size: 0.8rem; }
 .nearby-filters { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
 .nearby-radius-tabs, .nearby-type-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .radius-tab, .type-tab {

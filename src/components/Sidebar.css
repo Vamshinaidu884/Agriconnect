@@ -105,7 +105,7 @@
 .sidebar-footer {
   padding: 1rem 0.75rem;
   border-top: 1px solid var(--surface-border);
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(31, 51, 34, 0.04);
 }
 
 .sidebar-profile-card {

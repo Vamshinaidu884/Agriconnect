@@ -31,6 +31,7 @@ export default function NearbyRequests() {
               : locationError || 'Getting your location...'}
           </span>
         </div>
+        {locationError && <p className="nearby-location-note" role="status">{locationError}</p>}
 
         {/* Filters */}
         <div className="nearby-filters">

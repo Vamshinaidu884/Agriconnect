@@ -28,12 +28,12 @@ const sendPasswordResetOTP = async (email, name, otp) => {
   const transporter = createTransporter();
 
   const mailOptions = {
-    from: `"AgriMatch 🌾" <${process.env.EMAIL_USER}>`,
+    from: `"Agri Connect 🌾" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: 'AgriMatch — Password Reset OTP',
+    subject: 'Agri Connect — Password Reset OTP',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-        <h2 style="color: #2E7D32;">🌾 AgriMatch</h2>
+        <h2 style="color: #2E7D32;">🌾 Agri Connect</h2>
         <p>Hello <strong>${name}</strong>,</p>
         <p>You requested a password reset. Use the OTP below to reset your password.</p>
         <div style="background: #f5f5f5; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
@@ -42,7 +42,7 @@ const sendPasswordResetOTP = async (email, name, otp) => {
         <p style="color: #666; font-size: 14px;">This OTP expires in <strong>10 minutes</strong>.</p>
         <p style="color: #666; font-size: 14px;">If you did not request this, please ignore this email.</p>
         <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 20px 0;">
-        <p style="color: #999; font-size: 12px;">AgriMatch — Connecting Farmers, Labour & Machine Owners</p>
+        <p style="color: #999; font-size: 12px;">Agri Connect — Connecting Farmers, Labour & Machine Owners</p>
       </div>
     `,
   };

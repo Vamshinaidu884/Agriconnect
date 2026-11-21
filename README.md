@@ -1,6 +1,6 @@
 # 🌾 Agri Connect — Farm Job Platform
 
-> A responsive farm-services platform connecting **farmers**, **labour workers**, and **machine owners** in rural India. Built with React + Vite and a Node.js/Express + MongoDB API.
+> A mobile-first React web application that connects **farmers**, **labour workers**, and **machine owners** in rural India. Built with Vite + React 19.
 
 ---
 
@@ -20,8 +20,8 @@ Agri Connect bridges the gap between farmers who need help and workers/machine o
 | **Icons** | Lucide React |
 | **Styling** | Vanilla CSS (custom design system) |
 | **State Management** | React Context API |
-| **Authentication** | JWT, persistent or session-only sign-in |
-| **Backend** | Express REST API, MongoDB/Mongoose |
+| **Storage** | localStorage (mock backend) |
+| **Backend folder** | Present but not yet wired |
 
 ---
 
@@ -66,8 +66,8 @@ The platform supports **3 distinct user roles**, selected at registration:
 
 | Page | Route | Description |
 |---|---|---|
-| Landing | `/` | Public platform overview and service entry points |
-| Login | `/login` | Email or phone + password login |
+| Splash | `/` | Animated landing screen |
+| Login | `/login` | Email + password login |
 | Register | `/register` | New account creation |
 | Role Selection | `/role-selection` | Pick Farmer / Labour / Machine Owner |
 
@@ -81,8 +81,6 @@ The platform supports **3 distinct user roles**, selected at registration:
 | **Request Detail** | `/request/:id` | All | Full view of a job posting, accept/withdraw |
 | **My Requests** | `/my-requests` | All | View posted or accepted jobs |
 | **Profile** | `/profile` | All | Edit personal info, view ratings, earnings history |
-| **Machinery Marketplace** | `/marketplace/machinery` | All | Search available equipment; filter by category, distance, price and rating |
-| **Smart Recommendations** | `/recommendations` | Signed-in users | Rank available machinery against location, ratings, price, availability and past machine requests |
 
 ### 🌿 Agricultural Intelligence Pages
 
@@ -206,17 +204,6 @@ change% = ((currentPrice - previousPrice) / previousPrice) × 100
 
 Covers 10 major crops: Rice, Cotton, Groundnut, Red Gram, Maize, Chillies, Sugarcane, Ragi, Coconut, Black Gram.
 
-### 6. 🧠 K-Nearest Neighbors — Machinery Recommendations
-**API:** `GET /api/recommendations` (JWT required)
-
-The API ranks existing available machinery listings against the farmer's location, provider rating, price relative to previous machine requests, availability, and previously requested machine category. It returns the nearest feature-vector matches with a recommendation score; it does not create synthetic provider listings.
-
-The farmer dashboard displays the top matches; the full recommendations page explains the ranking. The marketplace adds search, category, distance, maximum-price and minimum-rating filters, plus nearest/price/rating sorting.
-
-### Authentication updates
-- `POST /api/auth/login` accepts an email address or a valid 10-digit Indian mobile number; existing email-based API clients remain supported.
-- The login form's **Remember me** checkbox selects persistent browser storage or session-only storage.
-
 ---
 
 ## 🗂️ Project Structure
@@ -290,7 +277,7 @@ Two route guard types:
 - **ProtectedRoute** — redirects unauthenticated users to `/login`
 - **PublicRoute** — redirects already-logged-in users to `/home`
 
-Sessions use persistent storage when **Remember me** is checked and session-only storage when it is unchecked. Existing saved localStorage sessions continue to work.
+Session is stored in **localStorage** via `AuthContext`.
 
 ---
 
@@ -309,27 +296,21 @@ Sessions use persistent storage when **Remember me** is checked and session-only
 ## 🚀 Running the App
 
 ```bash
-# Terminal 1: start the API
-cd backend
+# Install dependencies
 npm install
+
+# Start development server
 npm run dev
+
+# Open in browser
+http://localhost:5173/
 ```
-
-```bash
-# Terminal 2: start the frontend from the project root
-npm install
-npm run dev
-```
-
-The frontend runs at `http://localhost:5173/` and the API at `http://localhost:5000/`. Set `VITE_API_URL` in the frontend `.env` if the API is hosted at a different URL. Without `MONGODB_URI`, the backend starts a persistent local MongoDB instance; set `MONGODB_URI` in `backend/.env` to use another MongoDB deployment. Backend settings also include `PORT`, `JWT_SECRET`, and `CLIENT_URL`. Use a unique private `JWT_SECRET` outside local development.
-
-Run `npm run build` and `npm run lint` in the frontend root to validate the app.
 
 ---
 
-## 🔑 Local Development Test Login
+## 🔑 Test Login Credentials
 
-The backend seeds this local development account:
+To quickly explore the dashboard and premium SaaS layouts, you can sign in with this pre-configured test account:
 
 *   **Email:** `siva_test@gmail.com`
 *   **Password:** `password123`
@@ -337,8 +318,11 @@ The backend seeds this local development account:
 
 ## 🔮 Future Enhancements
 
+- 🌐 Real backend (Node.js/Express or Firebase)
 - 🤖 Actual ML model for disease detection (PlantVillage CNN)
 - 📡 Live mandi prices via government APIs (Agmarknet)
+- 🗺️ Real GPS geolocation for Nearby Requests
 - 💬 In-app chat between farmer and worker
-- 💳 Payment integration (UPI/Razorpay; the current request workflow does not collect payments)
+- 💳 Payment integration (UPI/Razorpay)
 - 📱 PWA support for offline usage
+# Agriconnect

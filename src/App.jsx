@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
 import { AppProvider } from './context/AppContext';
 import Toast from './components/Toast';
-import Splash from './pages/Splash';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import RoleSelection from './pages/RoleSelection';
@@ -19,7 +19,11 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Machines from './pages/Machines';
 import AddMachine from './pages/AddMachine';
+import Landing from './pages/Landing';
+import MachineryMarketplace from './pages/MachineryMarketplace';
+import Recommendations from './pages/Recommendations';
 import { LanguageProvider } from './context/LanguageContext';
+import { ThemeProvider } from './context/ThemeProvider';
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -39,7 +43,7 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public */}
-      <Route path="/" element={<Splash />} />
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
@@ -58,6 +62,8 @@ function AppRoutes() {
       <Route path="/market-insights" element={<ProtectedRoute><MarketInsights /></ProtectedRoute>} />
       <Route path="/machines" element={<ProtectedRoute><Machines /></ProtectedRoute>} />
       <Route path="/add-machine" element={<ProtectedRoute><AddMachine /></ProtectedRoute>} />
+      <Route path="/marketplace/machinery" element={<ProtectedRoute><MachineryMarketplace /></ProtectedRoute>} />
+      <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -68,16 +74,18 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
-      <LanguageProvider>
-        <AuthProvider>
-          <AppProvider>
-            <div className="app-container">
-              <AppRoutes />
-              <Toast />
-            </div>
-          </AppProvider>
-        </AuthProvider>
-      </LanguageProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <AppProvider>
+              <div className="app-container">
+                <AppRoutes />
+                <Toast />
+              </div>
+            </AppProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

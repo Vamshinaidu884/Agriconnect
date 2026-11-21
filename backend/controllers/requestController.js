@@ -24,31 +24,44 @@ const getRequests = async (req, res, next) => {
     if (status) query.status = status;
     if (farmerId) query.farmerId = farmerId;
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    let requests = await Request.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit))
-      .lean();
+    const pageNumber = Math.max(1, parseInt(page, 10) || 1);
+    const pageSize = Math.max(1, parseInt(limit, 10) || 20);
+    const skip = (pageNumber - 1) * pageSize;
+    let requests;
+    let total;
 
     // Apply Haversine distance filter if coordinates provided
-    if (lat && lng) {
+    if (lat !== undefined && lng !== undefined) {
       const userLat = parseFloat(lat);
       const userLng = parseFloat(lng);
       const radiusKm = parseFloat(radius);
-      requests = filterByRadius(requests, userLat, userLng, radiusKm);
+      const nearbyRequests = filterByRadius(
+        await Request.find(query).sort({ createdAt: -1 }).lean(),
+        userLat,
+        userLng,
+        radiusKm
+      );
+      total = nearbyRequests.length;
+      requests = nearbyRequests.slice(skip, skip + pageSize);
+    } else {
+      [requests, total] = await Promise.all([
+        Request.find(query)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(pageSize)
+          .lean(),
+        Request.countDocuments(query),
+      ]);
     }
-
-    const total = await Request.countDocuments(query);
 
     res.json({
       success: true,
       requests,
       pagination: {
         total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit)),
+        page: pageNumber,
+        limit: pageSize,
+        pages: Math.ceil(total / pageSize),
       },
     });
   } catch (error) {
@@ -65,13 +78,22 @@ const createRequest = async (req, res, next) => {
   try {
     const user = req.user;
     const {
-      title, description, type, category,
+      title, description, type, category, subType,
       workersNeeded, location, district, state,
       date, timeSlot, priceOffered, priceUnit,
       foodProvided, driverRequired, landArea, landUnit,
     } = req.body;
 
-    if (!title || !type || !category || !workersNeeded || !location || !date || !priceOffered) {
+    const finalCategory = category || subType;
+    const safeLocation = location && typeof location === 'object'
+      ? {
+          lat: Number(location.lat ?? 0),
+          lng: Number(location.lng ?? 0),
+          address: location.address || '',
+        }
+      : { lat: 0, lng: 0, address: '' };
+
+    if (!title || !type || !finalCategory || !workersNeeded || !date || !priceOffered) {
       return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
@@ -79,17 +101,17 @@ const createRequest = async (req, res, next) => {
       title,
       description: description || '',
       type,
-      category,
+      category: finalCategory,
       workersNeeded: parseInt(workersNeeded),
-      location,
+      location: safeLocation,
       district: district || user.district,
       state: state || user.state,
       date: new Date(date),
       timeSlot: timeSlot || 'morning',
       priceOffered: parseFloat(priceOffered),
       priceUnit: priceUnit || 'per_day',
-      foodProvided: foodProvided || false,
-      driverRequired: driverRequired || false,
+      foodProvided: !!foodProvided,
+      driverRequired: !!driverRequired,
       landArea: landArea ? parseFloat(landArea) : 0,
       landUnit: landUnit || 'acres',
       farmerId: user._id,

@@ -1,20 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Plus } from 'lucide-react';
+import { MapPin, Plus, Sparkles } from 'lucide-react';
 import Layout from '../components/Layout';
 import RequestCard from '../components/RequestCard';
 import WeatherWidget from '../components/WeatherWidget';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { useTranslation } from '../context/LanguageContext';
 import { requestService } from '../services/requestService';
+import { recommendationService } from '../services/recommendationService';
+import { useApp } from '../context/AppContext';
 import { ALL_STATES } from '../constants/categories';
 import './Home.css';
 
 export default function Home() {
   const { user } = useAuth();
+  const { showToast } = useApp();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [recentRequests, setRecentRequests] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [dashboardStats, setDashboardStats] = useState({ total: 0, active: 0, completed: 0, pending: 0 });
   const [loading, setLoading] = useState(true);
   const [location, setLocation] = useState(null);
 
@@ -31,15 +36,32 @@ export default function Home() {
 
     // Fetch recent pending requests
     const fetchRecent = async () => {
-      try {
-        const data = await requestService.getAll({ status: 'pending', limit: 3 });
-        setRecentRequests(data.requests || []);
-      } catch { /* silent */ } finally {
-        setLoading(false);
+      const isFarmer = user?.roles?.includes('farmer');
+      const [data, mine, recommended] = await Promise.allSettled([
+        requestService.getAll({ status: 'pending', limit: 3 }),
+        requestService.getMy(),
+        isFarmer ? recommendationService.getForMe() : Promise.resolve(null),
+      ]);
+      if (data.status === 'fulfilled') setRecentRequests(data.value.requests || []);
+      else showToast('Unable to load nearby requests. Please try again.', 'error');
+      if (mine.status === 'fulfilled') {
+        const allRequests = [...(mine.value.posted || []), ...(mine.value.accepted || [])];
+        const uniqueRequests = [...new Map(allRequests.map((request) => [request._id || request.id, request])).values()];
+        setDashboardStats({
+          total: uniqueRequests.length,
+          active: uniqueRequests.filter((request) => request.status === 'active').length,
+          completed: uniqueRequests.filter((request) => request.status === 'completed').length,
+          pending: uniqueRequests.filter((request) => request.status === 'pending').length,
+        });
+      } else {
+        showToast('Unable to load your booking summary. Please try again.', 'error');
       }
+      if (recommended.status === 'fulfilled') setRecommendations(recommended.value?.recommendations?.slice(0, 3) || []);
+      else showToast('Smart recommendations could not be loaded.', 'error');
+      setLoading(false);
     };
     fetchRecent();
-  }, []);
+  }, [user?._id, user?.roles, showToast]);
 
   const actions = [
     { id: 'find-labour', label: t('find_labour'), emoji: '👷', color: '#2E7D32', desc: t('find_labour_desc'), path: '/create-request?type=labour' },
@@ -85,16 +107,20 @@ export default function Home() {
         {/* Stats */}
         <div className="home-stats">
           <div className="home-stat card">
-            <span className="home-stat-value">{user?.completedJobs || 0}</span>
-            <span className="home-stat-label">{t('jobs_done')}</span>
+            <span className="home-stat-value">{dashboardStats.total}</span>
+            <span className="home-stat-label">Total Bookings</span>
           </div>
           <div className="home-stat card">
-            <span className="home-stat-value">{user?.rating?.toFixed(1) || '0.0'}</span>
-            <span className="home-stat-label">{t('rating')} ⭐</span>
+            <span className="home-stat-value">{dashboardStats.active}</span>
+            <span className="home-stat-label">Active Bookings</span>
           </div>
           <div className="home-stat card">
-            <span className="home-stat-value">{user?.serviceRadius || 20}</span>
-            <span className="home-stat-label">{t('radius')} km</span>
+            <span className="home-stat-value">{dashboardStats.completed}</span>
+            <span className="home-stat-label">Completed Services</span>
+          </div>
+          <div className="home-stat card">
+            <span className="home-stat-value">{dashboardStats.pending}</span>
+            <span className="home-stat-label">Pending Requests</span>
           </div>
         </div>
 
@@ -144,6 +170,29 @@ export default function Home() {
             ))}
           </div>
         </div>
+
+        {user?.roles?.includes('farmer') && (
+          <div className="home-section home-recommendations">
+            <div className="home-section-header">
+              <div><h2 className="home-section-title"><Sparkles size={19} /> Recommended for you</h2><p>Good matches for your farm and nearby area.</p></div>
+              <button className="btn btn-ghost btn-sm" onClick={() => navigate('/recommendations')}>See all</button>
+            </div>
+                {recommendations.length > 0 ? (
+              <div className="home-recommendation-grid">
+                {recommendations.map((machine) => (
+                  <button key={machine._id} className="home-recommendation-card card card-interactive" onClick={() => navigate('/recommendations')}>
+                    {machine.images?.[0] ? <img src={machine.images[0]} alt="" loading="lazy" /> : <span className="home-recommendation-emoji">🚜</span>}
+                    <span className="home-recommendation-info"><b>{machine.name}</b><small>{machine.type} · {machine.district || 'Nearby'}</small><strong>₹{Number(machine.pricePerDay || 0).toLocaleString('en-IN')} / {(machine.priceUnit || 'per_day').replace('per_', '')}</strong></span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <button className="home-recommendation-empty card card-interactive" onClick={() => navigate('/recommendations')}>
+                <Sparkles size={19} /><span>Explore smart matches for machinery in your area</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Recent Requests */}
         {!loading && recentRequests.length > 0 && (

@@ -1,21 +1,24 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Settings, LogOut, ChevronRight, Globe, Camera } from 'lucide-react';
+import { MapPin, Settings, LogOut, ChevronRight, Globe, Camera, Sun, Moon } from 'lucide-react';
 import Layout from '../components/Layout';
 import RatingStars from '../components/RatingStars';
 import Modal from '../components/Modal';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { useApp } from '../context/AppContext';
 import { useTranslation } from '../context/LanguageContext';
+import { useTheme } from '../hooks/useTheme';
 import { getRoleLabel, getRoleIcon } from '../utils/helpers';
 import { southIndianStates, rangeOptions } from '../data/categories';
+import { supportedLanguages } from '../data/languages';
 import { userService } from '../services/userService';
 import './Profile.css';
 
 export default function Profile() {
   const { user, updateUser, logout } = useAuth();
   const { showToast } = useApp();
-  const { t } = useTranslation();
+  const { language, setLanguage, t } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const fileInputRef = useRef();
 
@@ -212,6 +215,55 @@ export default function Profile() {
             <ChevronRight size={18} color="var(--text-tertiary)" />
           </button>
 
+          <div className="profile-menu-item card profile-theme-setting" id="theme-setting">
+            <div className="profile-menu-left">
+              <div className="profile-menu-icon" style={{ background: 'rgba(249,168,37,0.15)' }}>
+                {theme === 'light'
+                  ? <Sun size={18} color="var(--warning)" />
+                  : <Moon size={18} color="var(--warning)" />}
+              </div>
+              <div>
+                <label className="profile-menu-label" htmlFor="theme-select">{t('theme')}</label>
+                <span className="profile-menu-desc">
+                  {theme === 'light' ? t('light_theme') : t('dark_theme')}
+                </span>
+              </div>
+            </div>
+            <select
+              id="theme-select"
+              className="profile-theme-select"
+              aria-label={t('theme')}
+              value={theme}
+              onChange={(event) => setTheme(event.target.value)}
+            >
+              <option value="light">{t('light_theme')}</option>
+              <option value="dark">{t('dark_theme')}</option>
+            </select>
+          </div>
+
+          <div className="profile-menu-item card profile-theme-setting" id="language-setting">
+            <div className="profile-menu-left">
+              <div className="profile-menu-icon" style={{ background: 'rgba(30,136,229,0.15)' }}>
+                <Globe size={18} color="var(--info)" />
+              </div>
+              <div>
+                <label className="profile-menu-label" htmlFor="language-select">{t('language')}</label>
+                <span className="profile-menu-desc">{t('language_description')}</span>
+              </div>
+            </div>
+            <select
+              id="language-select"
+              className="profile-theme-select"
+              aria-label={t('language')}
+              value={language}
+              onChange={(event) => setLanguage(event.target.value)}
+            >
+              {supportedLanguages.map((item) => (
+                <option key={item.code} value={item.code}>{item.name}</option>
+              ))}
+            </select>
+          </div>
+
           <button className="profile-menu-item card" onClick={() => setShowLogoutConfirm(true)} id="logout-btn">
             <div className="profile-menu-left">
               <div className="profile-menu-icon" style={{ background: 'rgba(211,47,47,0.15)' }}>
@@ -233,7 +285,7 @@ export default function Profile() {
         </div>
 
         <div className="profile-brand">
-          <span>🌾 AgriMatch v2.0 Pro</span>
+          <span>🌾 Agri Connect v2.0 Pro</span>
           <span>Smart Farming Starts Here</span>
         </div>
       </div>

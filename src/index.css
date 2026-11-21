@@ -7,9 +7,11 @@
 
 /* === DESIGN TOKENS === */
 :root {
+  color-scheme: light;
+
   /* Primary Colors */
   --primary: #2E7D32;
-  --primary-light: #4CAF50;
+  --primary-light: #2E7D32;
   --primary-dark: #1B5E20;
   --primary-glow: rgba(46, 125, 50, 0.3);
   --primary-subtle: rgba(46, 125, 50, 0.1);
@@ -19,30 +21,30 @@
   --earth-light: #A1887F;
   --earth-dark: #6D4C41;
 
-  /* Surface Colors (Dark Theme) */
-  --bg: #0A0A0A;
-  --surface: #121212;
-  --surface-card: #1A1A1A;
-  --surface-elevated: #242424;
-  --surface-hover: #2A2A2A;
-  --surface-border: rgba(255, 255, 255, 0.06);
-  --surface-glass: rgba(26, 26, 26, 0.85);
+  /* Surface Colors (Light Theme) */
+  --bg: #F4F7F2;
+  --surface: #FFFFFF;
+  --surface-card: #FFFFFF;
+  --surface-elevated: #F3F6F3;
+  --surface-hover: #EAF2EA;
+  --surface-border: rgba(31, 51, 34, 0.12);
+  --surface-glass: rgba(255, 255, 255, 0.92);
 
   /* Status Colors */
-  --warning: #F9A825;
+  --warning: #8A5A00;
   --warning-bg: rgba(249, 168, 37, 0.12);
-  --error: #D32F2F;
+  --error: #C62828;
   --error-bg: rgba(211, 47, 47, 0.12);
-  --success: #43A047;
+  --success: #2E7D32;
   --success-bg: rgba(67, 160, 71, 0.12);
-  --info: #1E88E5;
+  --info: #1565C0;
   --info-bg: rgba(30, 136, 229, 0.12);
 
   /* Text Colors */
-  --text-primary: #FAFAFA;
-  --text-secondary: #9E9E9E;
-  --text-tertiary: #616161;
-  --text-inverse: #121212;
+  --text-primary: #1B1F1B;
+  --text-secondary: #59645B;
+  --text-tertiary: #727C74;
+  --text-inverse: #FFFFFF;
 
   /* Accent */
   --accent-gold: #FFD54F;
@@ -84,11 +86,11 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 1px 3px rgba(25, 45, 28, 0.08);
+  --shadow-md: 0 4px 12px rgba(25, 45, 28, 0.12);
+  --shadow-lg: 0 8px 24px rgba(25, 45, 28, 0.16);
   --shadow-glow: 0 0 20px var(--primary-glow);
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-card: 0 2px 8px rgba(25, 45, 28, 0.08), 0 0 1px rgba(25, 45, 28, 0.06);
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -110,6 +112,31 @@
   --z-modal: 50;
   --z-toast: 60;
   --z-splash: 100;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --primary-light: #4CAF50;
+  --bg: #0A0A0A;
+  --surface: #121212;
+  --surface-card: #1A1A1A;
+  --surface-elevated: #242424;
+  --surface-hover: #2A2A2A;
+  --surface-border: rgba(255, 255, 255, 0.06);
+  --surface-glass: rgba(26, 26, 26, 0.92);
+  --warning: #F9A825;
+  --error: #D32F2F;
+  --success: #43A047;
+  --info: #1E88E5;
+  --text-primary: #FAFAFA;
+  --text-secondary: #B0B0B0;
+  --text-tertiary: #858585;
+  --text-inverse: #121212;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 /* === RESET === */
@@ -502,14 +529,14 @@ ul, ol {
 }
 
 .card:hover {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(46, 125, 50, 0.22);
 }
 
 .card-glass {
   background: var(--surface-glass);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--surface-border);
 }
 
 .card-interactive {

@@ -5,7 +5,7 @@ import Layout from '../components/Layout';
 import Spinner from '../components/Spinner';
 import ErrorMessage from '../components/ErrorMessage';
 import { machineService } from '../services/machineService';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { useApp } from '../context/AppContext';
 import './Machines.css';
 

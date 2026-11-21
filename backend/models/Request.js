@@ -17,6 +17,7 @@ const acceptedUserSchema = new mongoose.Schema(
 const ratingSchema = new mongoose.Schema(
   {
     ratedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    ratedFor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     score: { type: Number, min: 1, max: 5, required: true },
     comment: { type: String, default: '' },
     ratedAt: { type: Date, default: Date.now },

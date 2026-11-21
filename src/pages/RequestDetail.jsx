@@ -1,14 +1,15 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Clock, Users, Phone, Calendar, Ruler } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { MapPin, Users, Phone, Calendar, Ruler } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import RatingStars from '../components/RatingStars';
 import StatusBadge from '../components/StatusBadge';
 import Spinner from '../components/Spinner';
 import ErrorMessage from '../components/ErrorMessage';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 import { useApp } from '../context/AppContext';
 import { requestService } from '../services/requestService';
+import { ratingService } from '../services/ratingService';
 import { formatPrice, formatDate, getTimeSlotLabel } from '../utils/helpers';
 import { southIndianStates } from '../data/categories';
 import { calculateDistance } from '../utils/distance';
@@ -17,28 +18,39 @@ import './RequestDetail.css';
 export default function RequestDetail() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { acceptRequest, withdrawRequest, completeRequest } = useApp();
-  const navigate = useNavigate();
-
+  const { acceptRequest, withdrawRequest, completeRequest, showToast } = useApp();
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [reviewScores, setReviewScores] = useState({});
+  const [reviewComments, setReviewComments] = useState({});
+  const [submittingReview, setSubmittingReview] = useState('');
 
   const fetchRequest = async () => {
     try {
-      setLoading(true);
-      setError('');
       const data = await requestService.getById(id);
       setRequest(data.request);
-    } catch (err) {
-      setError(err.message || 'Request not found');
+      setError('');
+    } catch (requestError) {
+      setError(requestError.message || 'Request not found');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRequest();
+    let active = true;
+    requestService.getById(id).then((data) => {
+      if (active) {
+        setRequest(data.request);
+        setError('');
+      }
+    }).catch((requestError) => {
+      if (active) setError(requestError.message || 'Request not found');
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
   }, [id]);
 
   if (loading) {
@@ -70,21 +82,56 @@ export default function RequestDetail() {
     try {
       await acceptRequest(request._id || request.id);
       fetchRequest();
-    } catch (err) { /* silent */ }
+    } catch (actionError) {
+      showToast(actionError.message || 'Unable to accept this request. Please try again.', 'error');
+    }
   };
 
   const handleWithdraw = async () => {
     try {
       await withdrawRequest(request._id || request.id);
       fetchRequest();
-    } catch (err) { /* silent */ }
+    } catch (actionError) {
+      showToast(actionError.message || 'Unable to withdraw from this request. Please try again.', 'error');
+    }
   };
 
   const handleComplete = async () => {
     try {
       await completeRequest(request._id || request.id);
       fetchRequest();
-    } catch (err) { /* silent */ }
+    } catch (actionError) {
+      showToast(actionError.message || 'Unable to complete this request. Please try again.', 'error');
+    }
+  };
+
+  const reviewTargets = request.status === 'completed'
+    ? isMyRequest
+      ? (request.acceptedUsers || []).map((worker) => ({ id: String(worker.userId), name: worker.userName }))
+      : hasAccepted
+        ? [{ id: String(request.farmerId), name: request.farmerName }]
+        : []
+    : [];
+  const handleSubmitReview = async (target) => {
+    const score = reviewScores[target.id];
+    if (!score) {
+      showToast('Choose a star rating before submitting.', 'error');
+      return;
+    }
+    setSubmittingReview(target.id);
+    try {
+      await ratingService.submit(request._id || request.id, {
+        targetUserId: target.id,
+        score,
+        comment: reviewComments[target.id] || '',
+      });
+      showToast(`Your review for ${target.name} was submitted.`);
+      await fetchRequest();
+    } catch (reviewError) {
+      showToast(reviewError.message || 'Unable to submit your review. Please try again.', 'error');
+    } finally {
+      setSubmittingReview('');
+    }
   };
 
   return (
@@ -186,6 +233,51 @@ export default function RequestDetail() {
               ))}
             </div>
           </div>
+        )}
+
+        {reviewTargets.length > 0 && (
+          <section className="detail-section detail-review-section">
+            <h3 className="heading-3">Rate your experience</h3>
+            {reviewTargets.map((target) => {
+              const hasReviewed = request.ratings?.some((rating) =>
+                String(rating.ratedBy) === String(user?._id) &&
+                String(rating.ratedFor) === target.id
+              );
+              return (
+                <div className="detail-review-card card" key={target.id}>
+                  <div><span className="detail-review-label">Your review for</span><h4>{target.name}</h4></div>
+                  {hasReviewed ? (
+                    <p className="detail-review-thanks">Thank you for sharing your feedback.</p>
+                  ) : (
+                    <>
+                      <RatingStars
+                        rating={reviewScores[target.id] || 0}
+                        interactive
+                        onChange={(score) => setReviewScores((current) => ({ ...current, [target.id]: score }))}
+                      />
+                      <label className="detail-review-label" htmlFor={`review-comment-${target.id}`}>Review (optional)</label>
+                      <textarea
+                        id={`review-comment-${target.id}`}
+                        className="input-field"
+                        rows={3}
+                        maxLength={500}
+                        placeholder="Share a few words about working together"
+                        value={reviewComments[target.id] || ''}
+                        onChange={(event) => setReviewComments((current) => ({ ...current, [target.id]: event.target.value }))}
+                      />
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => handleSubmitReview(target)}
+                        disabled={submittingReview === target.id}
+                      >
+                        {submittingReview === target.id ? 'Submitting...' : 'Submit review'}
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </section>
         )}
 
         {/* Action Buttons */}

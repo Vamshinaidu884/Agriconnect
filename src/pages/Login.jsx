@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { BriefcaseBusiness, Eye, EyeOff, Leaf, LockKeyhole, Mail, Sprout } from 'lucide-react';
+import { useAuth } from '../context/useAuth';
 import { useApp } from '../context/AppContext';
 import './Login.css';
 
@@ -10,6 +11,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [accountType, setAccountType] = useState('farmer');
   const { login } = useAuth();
   const { showToast } = useApp();
   const navigate = useNavigate();
@@ -18,7 +21,7 @@ export default function Login() {
     setLoading(true);
     setApiError('');
     try {
-      await login(data.email, data.password);
+      await login(data.identifier, data.password, rememberMe);
       showToast('Welcome back! 👋');
       navigate('/home');
     } catch (err) {
@@ -30,69 +33,113 @@ export default function Login() {
 
   return (
     <div className="login-page" id="login-page">
-      <div className="login-content card">
-        <div className="login-header">
-          <div className="login-logo-box">
-            <span className="login-logo-icon">🌾</span>
+      <main className="login-scene">
+        <img
+          className="login-hero-image"
+          src="/images/aerial-farmland-login.png"
+          alt=""
+          aria-hidden="true"
+          fetchPriority="high"
+        />
+        <section className="login-panel" aria-labelledby="login-title">
+          <Link className="login-brand" to="/" aria-label="AgriConnect home">
+            <span className="login-brand-mark"><Leaf size={22} /></span>
+            <span>Agri<span>Connect</span></span>
+          </Link>
+          <h1 className="login-title" id="login-title">Log in</h1>
+
+          <div className="login-account-tabs" role="group" aria-label="Choose account type">
+            <button
+              type="button"
+              className={`login-account-tab ${accountType === 'farmer' ? 'login-account-tab-active' : ''}`}
+              aria-pressed={accountType === 'farmer'}
+              onClick={() => setAccountType('farmer')}
+            >
+              <Sprout size={16} />
+              <span>Farmer</span>
+            </button>
+            <button
+              type="button"
+              className={`login-account-tab ${accountType === 'worker' ? 'login-account-tab-active' : ''}`}
+              aria-pressed={accountType === 'worker'}
+              onClick={() => setAccountType('worker')}
+            >
+              <BriefcaseBusiness size={16} />
+              <span>Worker</span>
+            </button>
           </div>
-          <h1 className="login-title">
-            <span className="brand-green">Agri</span>
-            <span className="brand-accent">Match</span>
-          </h1>
-          <p className="login-subtitle">Welcome back! Sign in to continue.</p>
-        </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="login-form" noValidate>
-          {apiError && <div className="login-error" id="login-api-error">{apiError}</div>}
+          <form onSubmit={handleSubmit(onSubmit)} className="login-form" noValidate>
+            {apiError && <div className="login-error" id="login-api-error" role="alert">{apiError}</div>}
 
-          <div className="input-group">
-            <label className="input-label">Email Address</label>
-            <input
-              id="login-email"
-              type="email"
-              className={`input-field ${errors.email ? 'input-error' : ''}`}
-              placeholder="your@email.com"
-              {...register('email', {
-                required: 'Email is required',
-                pattern: { value: /^\S+@\S+\.\S+$/, message: 'Enter a valid email' },
-              })}
-            />
-            {errors.email && <span className="field-error">{errors.email.message}</span>}
-          </div>
-
-          <div className="input-group">
-            <label className="input-label">Password</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="login-password"
-                type={showPassword ? 'text' : 'password'}
-                className={`input-field ${errors.password ? 'input-error' : ''}`}
-                placeholder="Your password"
-                style={{ paddingRight: '3rem' }}
-                {...register('password', { required: 'Password is required' })}
-              />
-              <button type="button" onClick={() => setShowPassword(s => !s)}
-                style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: '1.1rem' }}>
-                {showPassword ? '🙈' : '👁️'}
-              </button>
+            <div className="input-group">
+              <label className="input-label" htmlFor="login-identifier">Email</label>
+              <div className="login-input-wrap">
+                <Mail className="login-field-icon" size={17} />
+                <input
+                  id="login-identifier"
+                  type="text"
+                  autoComplete="username"
+                  className={`input-field ${errors.identifier ? 'input-error' : ''}`}
+                  placeholder="Enter email or mobile number"
+                  aria-invalid={Boolean(errors.identifier)}
+                  aria-describedby={errors.identifier ? 'login-identifier-error' : undefined}
+                  {...register('identifier', {
+                    required: 'Email address or mobile number is required',
+                    validate: (value) =>
+                      /^\S+@\S+\.\S+$/.test(value.trim()) || /^[6-9]\d{9}$/.test(value.trim()) ||
+                      'Enter a valid email address or 10-digit mobile number',
+                  })}
+                />
+              </div>
+              {errors.identifier && <span className="field-error" id="login-identifier-error">{errors.identifier.message}</span>}
             </div>
-            {errors.password && <span className="field-error">{errors.password.message}</span>}
+
+            <div className="input-group">
+              <label className="input-label" htmlFor="login-password">Password</label>
+              <div className="login-input-wrap">
+                <LockKeyhole className="login-field-icon" size={17} />
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  className={`input-field ${errors.password ? 'input-error' : ''}`}
+                  placeholder="Enter password"
+                  aria-invalid={Boolean(errors.password)}
+                  aria-describedby={errors.password ? 'login-password-error' : undefined}
+                  {...register('password', { required: 'Password is required' })}
+                />
+                <button
+                  type="button"
+                  className="login-pw-toggle"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+              {errors.password && <span className="field-error" id="login-password-error">{errors.password.message}</span>}
+            </div>
+
+            <Link to="/forgot-password" className="login-forgot-link" id="login-forgot-link">Forgot password?</Link>
+
+            <label className="login-remember">
+              <input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} />
+              <span>Remember me</span>
+            </label>
+            {!rememberMe && <span className="login-session-note">You’ll be signed out when you close this tab.</span>}
+
+            <button id="login-submit" type="submit" className="btn btn-primary btn-lg login-submit" disabled={loading}>
+              {loading ? <><span className="login-spinner" /> Signing in...</> : 'Log in'}
+            </button>
+          </form>
+
+          <div className="login-register">
+            <span>Don’t have an account? </span>
+            <Link to="/register" id="login-register-link">Sign up</Link>
           </div>
-
-          <div className="login-forgot">
-            <Link to="/forgot-password" id="login-forgot-link">Forgot password?</Link>
-          </div>
-
-          <button id="login-submit" type="submit" className="btn btn-primary btn-lg" disabled={loading}>
-            {loading ? '⏳ Signing in...' : 'Sign In'}
-          </button>
-        </form>
-
-        <div className="login-register">
-          <span>New to AgriMatch? </span>
-          <Link to="/register" id="login-register-link">Create account</Link>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }

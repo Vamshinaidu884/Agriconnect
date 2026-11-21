@@ -156,6 +156,25 @@
   transition: all var(--transition-base);
 }
 
+.profile-theme-setting {
+  cursor: default;
+}
+
+.profile-theme-select {
+  min-width: 112px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.profile-theme-select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .profile-menu-item:hover {
   background: var(--surface-elevated);
 }

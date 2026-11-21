@@ -1,8 +1,8 @@
 const STORAGE_KEYS = {
-  USER: 'agrimatch_user',
-  REQUESTS: 'agrimatch_requests',
-  USERS: 'agrimatch_users',
-  RATINGS: 'agrimatch_ratings',
+  USER: 'agri_connect_user',
+  REQUESTS: 'agri_connect_requests',
+  USERS: 'agri_connect_users',
+  RATINGS: 'agri_connect_ratings',
 };
 
 export const storage = {

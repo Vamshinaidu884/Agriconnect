@@ -1,14 +1,15 @@
 /* ============================================================
    AuthContext — Wired to real REST API via authService
    ============================================================ */
-import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import { useReducer, useEffect, useCallback } from 'react';
+import { AuthContext } from './authState';
 import { authService } from '../services/authService';
 import { userService } from '../services/userService';
 
-const AuthContext = createContext(null);
-
-const TOKEN_KEY = 'agrimatch_token';
-const USER_KEY = 'agrimatch_user';
+const TOKEN_KEY = 'agri_connect_token';
+const USER_KEY = 'agri_connect_user';
+const LEGACY_TOKEN_KEY = 'agrimatch_token';
+const LEGACY_USER_KEY = 'agrimatch_user';
 
 const initialState = {
   user: null,
@@ -43,20 +44,27 @@ export function AuthProvider({ children }) {
 
   // Restore session from localStorage on mount
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
-    const userStr = localStorage.getItem(USER_KEY);
+    const storedToken = localStorage.getItem(TOKEN_KEY) || localStorage.getItem(LEGACY_TOKEN_KEY);
+    const sessionToken = sessionStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(LEGACY_TOKEN_KEY);
+    const token = storedToken || sessionToken;
+    const storage = storedToken ? localStorage : sessionStorage;
+    const userStr = storage.getItem(USER_KEY) || storage.getItem(LEGACY_USER_KEY);
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
+        if (!storage.getItem(TOKEN_KEY)) storage.setItem(TOKEN_KEY, token);
+        if (!storage.getItem(USER_KEY)) storage.setItem(USER_KEY, userStr);
         dispatch({ type: 'INIT', payload: { user, token } });
         // Refresh user data from API in background
         userService.getProfile().then((data) => {
           dispatch({ type: 'UPDATE_USER', payload: data.user });
-          localStorage.setItem(USER_KEY, JSON.stringify({ ...user, ...data.user }));
+          storage.setItem(USER_KEY, JSON.stringify({ ...user, ...data.user }));
         }).catch(() => {
           // Token may be expired — clear session
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
+          storage.removeItem(TOKEN_KEY);
+          storage.removeItem(USER_KEY);
+          storage.removeItem(LEGACY_TOKEN_KEY);
+          storage.removeItem(LEGACY_USER_KEY);
           dispatch({ type: 'INIT', payload: { user: null, token: null } });
         });
       } catch {
@@ -67,12 +75,18 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const login = useCallback(async (email, password) => {
-    const data = await authService.login({ email, password });
-    localStorage.setItem(TOKEN_KEY, data.token);
-    localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  const login = useCallback(async (identifier, password, rememberMe = true) => {
+    const data = await authService.login({ identifier, password });
+    const storage = rememberMe ? localStorage : sessionStorage;
+    const otherStorage = rememberMe ? sessionStorage : localStorage;
+    storage.setItem(TOKEN_KEY, data.token);
+    storage.setItem(USER_KEY, JSON.stringify(data.user));
+    otherStorage.removeItem(TOKEN_KEY);
+    otherStorage.removeItem(USER_KEY);
+    otherStorage.removeItem(LEGACY_TOKEN_KEY);
+    otherStorage.removeItem(LEGACY_USER_KEY);
     dispatch({ type: 'LOGIN', payload: { user: data.user, token: data.token } });
-    return { success: true };
+    return { success: true, user: data.user };
   }, []);
 
   const register = useCallback(async (userData) => {
@@ -84,15 +98,20 @@ export function AuthProvider({ children }) {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    [localStorage, sessionStorage].forEach((storage) => {
+      storage.removeItem(TOKEN_KEY);
+      storage.removeItem(USER_KEY);
+      storage.removeItem(LEGACY_TOKEN_KEY);
+      storage.removeItem(LEGACY_USER_KEY);
+    });
     dispatch({ type: 'LOGOUT' });
   }, []);
 
   const updateUser = useCallback((updates) => {
     dispatch({ type: 'UPDATE_USER', payload: updates });
-    const current = JSON.parse(localStorage.getItem(USER_KEY) || '{}');
-    localStorage.setItem(USER_KEY, JSON.stringify({ ...current, ...updates }));
+    const storage = localStorage.getItem(TOKEN_KEY) ? localStorage : sessionStorage;
+    const current = JSON.parse(storage.getItem(USER_KEY) || '{}');
+    storage.setItem(USER_KEY, JSON.stringify({ ...current, ...updates }));
   }, []);
 
   const forgotPassword = useCallback((email) => authService.forgotPassword(email), []);
@@ -107,11 +126,3 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
-}
-
-export default AuthContext;

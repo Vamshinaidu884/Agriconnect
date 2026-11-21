@@ -30,7 +30,7 @@ const upload = multer({
  * @param {string} folder - Cloudinary folder name
  * @returns {Promise<object>} Cloudinary upload result
  */
-const uploadToCloudinary = (buffer, folder = 'agrimatch') => {
+const uploadToCloudinary = (buffer, folder = 'agri-connect') => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {

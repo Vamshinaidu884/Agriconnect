@@ -19,7 +19,16 @@ const register = async (req, res, next) => {
       return res.status(400).json({ success: false, message: errors.array()[0].msg });
     }
 
-    const { name, email, phone, password, roles, state, district, village, pincode } = req.body;
+    const { name, email, phone, password, roles, state, district, village, pincode, location } = req.body;
+    if (
+      location &&
+      (!Number.isFinite(Number(location.lat)) ||
+        !Number.isFinite(Number(location.lng)) ||
+        Math.abs(Number(location.lat)) > 90 ||
+        Math.abs(Number(location.lng)) > 180)
+    ) {
+      return res.status(400).json({ success: false, message: 'Valid location coordinates are required' });
+    }
 
     // Check if email already exists
     const existing = await User.findOne({ email });
@@ -37,6 +46,12 @@ const register = async (req, res, next) => {
       district: district || '',
       village: village || '',
       pincode: pincode || '',
+      ...(location && {
+        location: {
+          lat: Number(location.lat),
+          lng: Number(location.lng),
+        },
+      }),
     });
 
     const token = generateToken(user._id);
@@ -66,10 +81,14 @@ const login = async (req, res, next) => {
       return res.status(400).json({ success: false, message: errors.array()[0].msg });
     }
 
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const identifier = String(req.body.identifier || req.body.email || '').trim();
 
     // Find user with password field
-    const user = await User.findOne({ email }).select('+password');
+    const query = identifier.includes('@')
+      ? { email: identifier.toLowerCase() }
+      : { phone: identifier };
+    const user = await User.findOne(query).select('+password');
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
