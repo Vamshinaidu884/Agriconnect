@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
-import { useApp } from '../context/AppContext';
 import './ForgotPassword.css';
 
 export default function ForgotPassword() {
@@ -10,20 +9,18 @@ export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { forgotPassword } = useAuth();
-  const { showToast } = useApp();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email) return setError('Please enter your email');
+    if (!email.trim()) return setError('Please enter your email');
     setLoading(true);
     setError('');
     try {
-      await forgotPassword(email);
+      await forgotPassword(email.trim().toLowerCase());
       setSent(true);
-      showToast('OTP sent! Check your email.');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Could not request a password reset. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -42,10 +39,10 @@ export default function ForgotPassword() {
           <div className="fp-success">
             <span className="fp-success-icon">📧</span>
             <h2>OTP Sent!</h2>
-            <p>Check your email inbox. The OTP expires in 10 minutes.</p>
+            <p>If the address is registered, a six-digit code will be emailed to you. It expires in 10 minutes.</p>
             <button
               className="btn btn-primary"
-              onClick={() => navigate('/reset-password')}
+              onClick={() => navigate('/reset-password', { state: { email: email.trim().toLowerCase() } })}
               id="fp-go-reset"
             >
               Enter OTP & Reset Password
@@ -53,9 +50,9 @@ export default function ForgotPassword() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="fp-form">
-            {error && <div className="fp-error">{error}</div>}
+            {error && <div className="fp-error" role="alert">{error}</div>}
             <div className="input-group">
-              <label className="input-label">Email Address</label>
+              <label className="input-label" htmlFor="fp-email">Email Address</label>
               <input
                 id="fp-email"
                 type="email"
@@ -63,6 +60,7 @@ export default function ForgotPassword() {
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 required
               />
             </div>

@@ -3,12 +3,24 @@
    ============================================================ */
 const nodemailer = require('nodemailer');
 
+const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}[character]));
+
 /**
  * Create a Nodemailer transporter using Gmail SMTP.
  * Set EMAIL_USER and EMAIL_PASS in your .env file.
  * Use a Gmail App Password (not your regular password).
  */
 const createTransporter = () => {
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    throw new Error('EMAIL_USER and EMAIL_PASS are required to send password reset codes');
+  }
+
   return nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -26,6 +38,7 @@ const createTransporter = () => {
  */
 const sendPasswordResetOTP = async (email, name, otp) => {
   const transporter = createTransporter();
+  const safeName = escapeHtml(name);
 
   const mailOptions = {
     from: `"Agri Connect 🌾" <${process.env.EMAIL_USER}>`,
@@ -34,7 +47,7 @@ const sendPasswordResetOTP = async (email, name, otp) => {
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
         <h2 style="color: #2E7D32;">🌾 Agri Connect</h2>
-        <p>Hello <strong>${name}</strong>,</p>
+        <p>Hello <strong>${safeName}</strong>,</p>
         <p>You requested a password reset. Use the OTP below to reset your password.</p>
         <div style="background: #f5f5f5; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
           <h1 style="color: #2E7D32; letter-spacing: 8px; margin: 0;">${otp}</h1>

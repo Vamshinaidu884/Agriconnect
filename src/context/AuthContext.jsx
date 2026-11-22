@@ -75,6 +75,21 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      [localStorage, sessionStorage].forEach((storage) => {
+        storage.removeItem(TOKEN_KEY);
+        storage.removeItem(USER_KEY);
+        storage.removeItem(LEGACY_TOKEN_KEY);
+        storage.removeItem(LEGACY_USER_KEY);
+      });
+      dispatch({ type: 'LOGOUT' });
+    };
+
+    window.addEventListener('agri-connect:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('agri-connect:unauthorized', handleUnauthorized);
+  }, []);
+
   const login = useCallback(async (identifier, password, rememberMe = true) => {
     const data = await authService.login({ identifier, password });
     const storage = rememberMe ? localStorage : sessionStorage;

@@ -33,14 +33,14 @@ const connectDB = async () => {
       console.log(`✅ Using persistent local MongoDB for development (${dbPath})`);
     }
 
-    const conn = await mongoose.connect(mongoUri, {
+    await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 10000,
     });
-    console.log(`✅ MongoDB connected: ${conn.connection.host}`);
+    console.log('✅ MongoDB connected');
   } catch (error) {
-    console.error('========== FULL MONGODB ERROR ==========' );
-    console.error(error);
-    console.error('========================================');
+    console.error(
+      `MongoDB connection failed (${error.name || 'Error'}). Check MONGODB_URI and Atlas network access.`
+    );
     process.exit(1);
   }
 };

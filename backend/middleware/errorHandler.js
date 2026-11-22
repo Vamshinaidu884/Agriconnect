@@ -16,8 +16,10 @@ const errorHandler = (err, req, res, next) => {
   // Mongoose duplicate key error
   if (err.code === 11000) {
     statusCode = 400;
-    const field = Object.keys(err.keyValue)[0];
-    message = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    const field = Object.keys(err.keyValue || {})[0];
+    message = field
+      ? `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`
+      : 'A record with these details already exists';
   }
 
   // Mongoose cast error (invalid ObjectId)
@@ -35,6 +37,10 @@ const errorHandler = (err, req, res, next) => {
   // Log in development
   if (process.env.NODE_ENV === 'development') {
     console.error('❌ Error:', err);
+  }
+
+  if (statusCode >= 500 && process.env.NODE_ENV === 'production') {
+    message = 'An unexpected server error occurred. Please try again later.';
   }
 
   res.status(statusCode).json({

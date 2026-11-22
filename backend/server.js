@@ -4,6 +4,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const User = require('./models/User');
 const errorHandler = require('./middleware/errorHandler');
@@ -98,7 +99,11 @@ app.use('/api/recommendations', require('./routes/recommendationRoutes'));
 
 // ─── Health Check ────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Agri Connect API is running 🌾' });
+  const databaseConnected = mongoose.connection.readyState === 1;
+  res.status(databaseConnected ? 200 : 503).json({
+    status: databaseConnected ? 'ok' : 'unavailable',
+    database: databaseConnected ? 'connected' : 'disconnected',
+  });
 });
 
 // ─── 404 Handler ─────────────────────────────────────────────

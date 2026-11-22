@@ -73,7 +73,7 @@ export default function Login() {
             {apiError && <div className="login-error" id="login-api-error" role="alert">{apiError}</div>}
 
             <div className="input-group">
-              <label className="input-label" htmlFor="login-identifier">Email</label>
+              <label className="input-label" htmlFor="login-identifier">Email or mobile number</label>
               <div className="login-input-wrap">
                 <Mail className="login-field-icon" size={17} />
                 <input

@@ -30,7 +30,9 @@ const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, JWT_SECRET);
 
     // Find user (exclude password)
-    const user = await User.findById(decoded.id).select('-password -resetOTP -resetOTPExpiry');
+    const user = await User.findById(decoded.id).select(
+      '-password -resetOTP -resetOTPHash -resetOTPExpiry -resetOTPAttempts -resetOTPRequestedAt'
+    );
     if (!user) {
       return res.status(401).json({
         success: false,

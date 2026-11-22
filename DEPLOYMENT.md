@@ -50,8 +50,8 @@ https://YOUR-SERVICE.onrender.com/api/health
 | `CLOUDINARY_API_SECRET` | Optional | Cloudinary dashboard |
 | `OPENWEATHER_API_KEY` | Optional | OpenWeather dashboard |
 | `PLANTID_API_KEY` | Optional | Plant.id dashboard |
-| `EMAIL_USER` | Optional | Gmail address |
-| `EMAIL_PASS` | Optional | Gmail app password |
+| `EMAIL_USER` | Required for password recovery | Gmail address |
+| `EMAIL_PASS` | Required for password recovery | Gmail app password |
 
 Generate `JWT_SECRET` locally with:
 
@@ -72,6 +72,10 @@ VITE_API_URL=https://YOUR-SERVICE.onrender.com/api
 ```
 
 4. Deploy and copy the production Vercel URL.
+
+The backend health check at `/api/health` reports whether MongoDB is connected.
+Password reset codes are randomly generated, stored as keyed hashes, expire after
+10 minutes, and are delivered by email. A fixed or shared OTP is not used.
 
 ## 4. Connect frontend and backend
 

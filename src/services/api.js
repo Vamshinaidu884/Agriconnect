@@ -5,6 +5,7 @@
 import axios from 'axios';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const PUBLIC_AUTH_PATH = /\/auth\/(login|register|forgot-password|reset-password)(?:[?#]|$)/;
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -16,13 +17,12 @@ api.interceptors.request.use(
   (config) => {
     const token =
       localStorage.getItem('agri_connect_token') ||
-      localStorage.getItem('agrimatch_token');
+      localStorage.getItem('agrimatch_token') ||
+      sessionStorage.getItem('agri_connect_token') ||
+      sessionStorage.getItem('agrimatch_token');
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      if (!localStorage.getItem('agri_connect_token')) {
-        localStorage.setItem('agri_connect_token', token);
-      }
     }
 
     return config;
@@ -33,12 +33,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('agri_connect_token');
-      localStorage.removeItem('agri_connect_user');
-      localStorage.removeItem('agrimatch_token');
-      localStorage.removeItem('agrimatch_user');
-      window.location.href = '/login';
+    const requestUrl = error.config?.url || '';
+    if (error.response?.status === 401 && !PUBLIC_AUTH_PATH.test(requestUrl)) {
+      window.dispatchEvent(new Event('agri-connect:unauthorized'));
     }
 
     const message =

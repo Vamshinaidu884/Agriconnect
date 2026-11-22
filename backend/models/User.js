@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, 'Password is required'],
-      minlength: [6, 'Password must be at least 6 characters'],
+      minlength: [8, 'Password must be at least 8 characters'],
       select: false, // never returned by default
     },
     profileImage: {
@@ -61,9 +61,11 @@ const userSchema = new mongoose.Schema(
     totalRatings: { type: Number, default: 0 },
     completedJobs: { type: Number, default: 0 },
 
-    // Password reset OTP
     resetOTP: { type: String, select: false },
+    resetOTPHash: { type: String, select: false },
     resetOTPExpiry: { type: Date, select: false },
+    resetOTPAttempts: { type: Number, default: 0, select: false },
+    resetOTPRequestedAt: { type: Date, select: false },
   },
   {
     timestamps: true,

@@ -6,9 +6,9 @@ const { register, login, forgotPassword, resetPassword } = require('../controlle
 // Validation rules
 const registerRules = [
   body('name').trim().notEmpty().withMessage('Name is required'),
-  body('email').isEmail().withMessage('Valid email is required').normalizeEmail(),
-  body('phone').matches(/^[6-9]\d{9}$/).withMessage('Valid 10-digit Indian mobile number required'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('email').trim().isEmail().withMessage('Valid email is required').normalizeEmail(),
+  body('phone').trim().matches(/^[6-9]\d{9}$/).withMessage('Valid 10-digit Indian mobile number required'),
+  body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
 ];
 
 const loginRules = [
@@ -25,9 +25,19 @@ const loginRules = [
   body('password').notEmpty().withMessage('Password is required'),
 ];
 
+const forgotPasswordRules = [
+  body('email').trim().isEmail().withMessage('Enter a valid email address').normalizeEmail(),
+];
+
+const resetPasswordRules = [
+  body('email').trim().isEmail().withMessage('Enter a valid email address').normalizeEmail(),
+  body('otp').trim().matches(/^\d{6}$/).withMessage('Enter the six-digit code from your email'),
+  body('newPassword').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+];
+
 router.post('/register', registerRules, register);
 router.post('/login', loginRules, login);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+router.post('/forgot-password', forgotPasswordRules, forgotPassword);
+router.post('/reset-password', resetPasswordRules, resetPassword);
 
 module.exports = router;
