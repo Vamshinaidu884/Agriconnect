@@ -52,6 +52,7 @@ const app = express();
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173',
   'https://agrimatch.vercel.app',
+  'https://agriconnect-eosin.vercel.app',
 ];
 app.use(
   cors({

@@ -9,7 +9,7 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
+  timeout: 90000,
 });
 
 api.interceptors.request.use(
@@ -43,7 +43,11 @@ api.interceptors.response.use(
 
     const message =
       error.response?.data?.message ||
-      error.message ||
+      (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT'
+        ? 'The server is taking longer than expected to wake up. Please wait a moment and try again.'
+        : error.message === 'Network Error'
+          ? 'Unable to reach the server. It may be waking up; please wait a moment and try again.'
+          : error.message) ||
       'Something went wrong. Please try again.';
     return Promise.reject(new Error(message));
   }
