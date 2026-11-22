@@ -130,6 +130,45 @@ const login = async (req, res, next) => {
 };
 
 /**
+ * @route   POST /api/auth/change-password
+ * @desc    Change password for the authenticated user
+ * @access  Private
+ */
+const changePassword = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: errors.array()[0].msg });
+    }
+
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ success: false, message: 'New passwords do not match' });
+    }
+    if (newPassword === currentPassword) {
+      return res.status(400).json({ success: false, message: 'Choose a password different from your current one' });
+    }
+
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User account was not found' });
+    }
+
+    const currentPasswordMatches = await user.comparePassword(currentPassword);
+    if (!currentPasswordMatches) {
+      return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    return res.json({ success: true, message: 'Password changed successfully' });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+/**
  * @route   POST /api/auth/forgot-password
  * @desc    Send OTP to email for password reset
  * @access  Public
@@ -311,4 +350,4 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, forgotPassword, resetPassword };
+module.exports = { register, login, changePassword, forgotPassword, resetPassword };

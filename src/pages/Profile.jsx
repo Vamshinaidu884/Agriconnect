@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Settings, LogOut, ChevronRight, Globe, Camera, Sun, Moon } from 'lucide-react';
+import { MapPin, Settings, LogOut, ChevronRight, Globe, Camera, Sun, Moon, Lock } from 'lucide-react';
 import Layout from '../components/Layout';
 import RatingStars from '../components/RatingStars';
 import Modal from '../components/Modal';
@@ -12,6 +12,7 @@ import { getRoleLabel, getRoleIcon } from '../utils/helpers';
 import { southIndianStates, rangeOptions } from '../data/categories';
 import { supportedLanguages } from '../data/languages';
 import { userService } from '../services/userService';
+import { authService } from '../services/authService';
 import './Profile.css';
 
 export default function Profile() {
@@ -25,6 +26,14 @@ export default function Profile() {
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [showRangeModal, setShowRangeModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   const stateName = southIndianStates.find(s => s.id === user?.state)?.name || '';
@@ -124,6 +133,41 @@ export default function Profile() {
     navigate('/login', { replace: true });
   };
 
+  const closeChangePasswordModal = () => {
+    setShowChangePasswordModal(false);
+    setPasswordError('');
+    setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  };
+
+  const handleChangePassword = async (event) => {
+    event.preventDefault();
+    setPasswordError('');
+
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters');
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+    if (passwordForm.newPassword === passwordForm.currentPassword) {
+      setPasswordError('Choose a password different from your current one');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      await authService.changePassword(passwordForm);
+      closeChangePasswordModal();
+      showToast('Password changed successfully');
+    } catch (error) {
+      setPasswordError(error.message || 'Could not change your password. Please try again.');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   return (
     <Layout title={t('profile')}>
       <div id="profile-page">
@@ -210,6 +254,23 @@ export default function Profile() {
               <div>
                 <span className="profile-menu-label">{t('search_radius')}</span>
                 <span className="profile-menu-desc">Currently {user?.range || 20}km</span>
+              </div>
+            </div>
+            <ChevronRight size={18} color="var(--text-tertiary)" />
+          </button>
+
+          <button
+            className="profile-menu-item card"
+            onClick={() => setShowChangePasswordModal(true)}
+            id="change-password"
+          >
+            <div className="profile-menu-left">
+              <div className="profile-menu-icon" style={{ background: 'rgba(46,125,50,0.15)' }}>
+                <Lock size={18} color="var(--primary-light)" />
+              </div>
+              <div>
+                <span className="profile-menu-label">Change Password</span>
+                <span className="profile-menu-desc">Verify your current password before updating</span>
               </div>
             </div>
             <ChevronRight size={18} color="var(--text-tertiary)" />
@@ -326,6 +387,64 @@ export default function Profile() {
             </button>
           ))}
         </div>
+      </Modal>
+
+      <Modal
+        isOpen={showChangePasswordModal}
+        onClose={closeChangePasswordModal}
+        title="Change Password"
+      >
+        <form className="change-password-form" onSubmit={handleChangePassword}>
+          <p className="change-password-help">
+            Enter your current password, then choose and confirm a new password.
+          </p>
+          {passwordError && <p className="change-password-error" role="alert">{passwordError}</p>}
+
+          <div className="input-group">
+            <label className="input-label" htmlFor="current-password">Current password</label>
+            <input
+              id="current-password"
+              className="input-field"
+              type="password"
+              autoComplete="current-password"
+              value={passwordForm.currentPassword}
+              onChange={(event) => setPasswordForm((form) => ({ ...form, currentPassword: event.target.value }))}
+              required
+            />
+          </div>
+
+          <div className="input-group">
+            <label className="input-label" htmlFor="new-password">New password</label>
+            <input
+              id="new-password"
+              className="input-field"
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              value={passwordForm.newPassword}
+              onChange={(event) => setPasswordForm((form) => ({ ...form, newPassword: event.target.value }))}
+              required
+            />
+          </div>
+
+          <div className="input-group">
+            <label className="input-label" htmlFor="confirm-new-password">Confirm new password</label>
+            <input
+              id="confirm-new-password"
+              className="input-field"
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              value={passwordForm.confirmPassword}
+              onChange={(event) => setPasswordForm((form) => ({ ...form, confirmPassword: event.target.value }))}
+              required
+            />
+          </div>
+
+          <button className="btn btn-primary btn-full" type="submit" disabled={changingPassword}>
+            {changingPassword ? 'Updating password…' : 'Update password'}
+          </button>
+        </form>
       </Modal>
 
       {/* Logout Confirm */}

@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
-const { register, login, forgotPassword, resetPassword } = require('../controllers/authController');
+const { protect } = require('../middleware/auth');
+const {
+  register, login, changePassword, forgotPassword, resetPassword,
+} = require('../controllers/authController');
 
 // Validation rules
 const registerRules = [
@@ -35,8 +38,20 @@ const resetPasswordRules = [
   body('newPassword').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
 ];
 
+const changePasswordRules = [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword').isLength({ min: 8 }).withMessage('New password must be at least 8 characters'),
+  body('confirmPassword')
+    .notEmpty()
+    .withMessage('Please confirm your new password')
+    .bail()
+    .custom((value, { req }) => value === req.body.newPassword)
+    .withMessage('New passwords do not match'),
+];
+
 router.post('/register', registerRules, register);
 router.post('/login', loginRules, login);
+router.post('/change-password', protect, changePasswordRules, changePassword);
 router.post('/forgot-password', forgotPasswordRules, forgotPassword);
 router.post('/reset-password', resetPasswordRules, resetPassword);
 
