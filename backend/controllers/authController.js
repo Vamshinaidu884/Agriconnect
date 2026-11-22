@@ -5,6 +5,10 @@ const { validationResult } = require('express-validator');
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 const { generateOTP, getOTPExpiry, hashOTP, verifyOTP } = require('../utils/generateOTP');
+const {
+  DEMO_PASSWORD_RESET_OTP,
+  isDemoPasswordResetEnabled,
+} = require('../utils/demoPasswordReset');
 const { sendPasswordResetOTP } = require('../services/emailService');
 
 /**
@@ -142,7 +146,8 @@ const forgotPassword = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Enter a valid email address' });
     }
 
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    const demoPasswordReset = isDemoPasswordResetEnabled(email);
+    if (!demoPasswordReset && (!process.env.EMAIL_USER || !process.env.EMAIL_PASS)) {
       return res.status(503).json({
         success: false,
         message: 'Password recovery email is not configured. Please contact support.',
@@ -169,7 +174,7 @@ const forgotPassword = async (req, res, next) => {
       });
     }
 
-    const otp = generateOTP();
+    const otp = demoPasswordReset ? DEMO_PASSWORD_RESET_OTP : generateOTP();
     const otpHash = hashOTP(email, otp);
     user.resetOTP = undefined;
     user.resetOTPHash = otpHash;
@@ -178,21 +183,23 @@ const forgotPassword = async (req, res, next) => {
     user.resetOTPRequestedAt = now;
     await user.save({ validateBeforeSave: false });
 
-    try {
-      await sendPasswordResetOTP(user.email, user.name, otp);
-    } catch (emailError) {
-      await User.updateOne(
-        { _id: user._id, resetOTPHash: otpHash },
-        {
-          $unset: { resetOTPHash: 1, resetOTPExpiry: 1, resetOTPRequestedAt: 1 },
-          $set: { resetOTPAttempts: 0 },
-        }
-      );
-      console.error(`Password recovery email failed (${emailError.name || 'Error'})`);
-      return res.status(503).json({
-        success: false,
-        message: 'Could not send the recovery email. Please try again later.',
-      });
+    if (!demoPasswordReset) {
+      try {
+        await sendPasswordResetOTP(user.email, user.name, otp);
+      } catch (emailError) {
+        await User.updateOne(
+          { _id: user._id, resetOTPHash: otpHash },
+          {
+            $unset: { resetOTPHash: 1, resetOTPExpiry: 1, resetOTPRequestedAt: 1 },
+            $set: { resetOTPAttempts: 0 },
+          }
+        );
+        console.error(`Password recovery email failed (${emailError.name || 'Error'})`);
+        return res.status(503).json({
+          success: false,
+          message: 'Could not send the recovery email. Please try again later.',
+        });
+      }
     }
 
     res.json({

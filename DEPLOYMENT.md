@@ -74,8 +74,14 @@ VITE_API_URL=https://YOUR-SERVICE.onrender.com/api
 4. Deploy and copy the production Vercel URL.
 
 The backend health check at `/api/health` reports whether MongoDB is connected.
-Password reset codes are randomly generated, stored as keyed hashes, expire after
-10 minutes, and are delivered by email. A fixed or shared OTP is not used.
+Production password reset codes are randomly generated, stored as keyed hashes,
+expire after 10 minutes, and are delivered by email.
+
+For local demonstrations only, `DEMO_PASSWORD_RESET_ENABLED=true` accepts the
+fixed code `126128` for synthetic `agriconnect.test.*@example.com` accounts while
+using a localhost MongoDB database in `development` or `test`. It is disabled
+in production and does not work with remote MongoDB hosts. Never use this mode
+for real accounts or enable it on a deployed service.
 
 ## 4. Connect frontend and backend
 
