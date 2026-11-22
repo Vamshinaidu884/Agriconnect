@@ -254,7 +254,7 @@ const resetPassword = async (req, res, next) => {
       await User.updateOne(
         { _id: user._id, resetOTPHash: user.resetOTPHash },
         {
-          $unset: { resetOTPHash: 1, resetOTPExpiry: 1 },
+          $unset: { resetOTPHash: 1, resetOTPExpiry: 1, resetOTPRequestedAt: 1 },
           $set: { resetOTPAttempts: 0 },
         }
       );
@@ -293,7 +293,7 @@ const resetPassword = async (req, res, next) => {
         resetOTPAttempts: { $lt: 5 },
       },
       {
-        $unset: { resetOTPHash: 1, resetOTPExpiry: 1 },
+        $unset: { resetOTPHash: 1, resetOTPExpiry: 1, resetOTPRequestedAt: 1 },
         $set: { resetOTPAttempts: 0 },
       },
       { new: true }
